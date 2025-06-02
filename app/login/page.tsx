@@ -1,30 +1,115 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { AtSign, Lock, Eye, EyeOff } from "lucide-react"
+import { AtSign, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const { signIn, isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/perfil")
+    }
+  }, [isAuthenticated, router])
+
+  // Simplificar la función validateRUT para que solo valide formato básico
+  const validateRUT = (rut: string): boolean => {
+    // Remover puntos y guiones para validación
+    const cleanRUT = rut.replace(/[.-]/g, "")
+
+    // Verificar que tenga entre 8 y 9 caracteres
+    if (cleanRUT.length < 8 || cleanRUT.length > 9) return false
+
+    // Verificar que los primeros caracteres sean números
+    const numbers = cleanRUT.slice(0, -1)
+    const verifier = cleanRUT.slice(-1).toLowerCase()
+
+    if (!/^\d+$/.test(numbers)) return false
+    if (!/^[0-9k]$/.test(verifier)) return false
+
+    return true
+  }
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@colegiomontessori\.cl$/
+    return emailRegex.test(email.toLowerCase())
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    if (!validateEmail(email)) {
+      setError("Debes usar tu correo institucional válido (@colegiomontessori.cl)")
+      setLoading(false)
+      return
+    }
+
+    // Validar que el email sea del dominio institucional
+    if (!email.endsWith("@colegiomontessori.cl")) {
+      setError("Debes usar tu correo institucional (@colegiomontessori.cl)")
+      setLoading(false)
+      return
+    }
+
+    // En handleSubmit, cambiar el mensaje de error por uno más simple:
+    // Validar formato de RUT
+    if (!validateRUT(password)) {
+      setError("El RUT debe tener un formato válido (ej: 12345678-9)")
+      setLoading(false)
+      return
+    }
+
+    const { error } = await signIn(email, password)
+
+    if (error) {
+      setError(error.message)
+    } else {
+      router.push("/perfil")
+    }
+
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-8">
         {/* Logo placeholder */}
         <div className="text-center">
-          <div className="w-24 h-24 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-6">
-            <span className="text-gray-500 text-sm">Logo</span>
+          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[#005A9C] to-[#004080] rounded-full flex items-center justify-center mb-6 shadow-lg">
+            <span className="text-white text-2xl font-bold">BM</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 font-sans">Bienestar Montessori</h1>
+          <p className="text-gray-600 mt-2">Accede a tu portal de beneficios</p>
         </div>
 
         {/* Formulario */}
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -36,16 +121,20 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (error) setError("") // Limpiar error al escribir
+                  }}
                   placeholder="usuario@colegiomontessori.cl"
                   className="pl-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
+                  required
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                Contraseña
+                RUT (Contraseña)
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -53,9 +142,13 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Ingresa tu contraseña"
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (error) setError("") // Limpiar error al escribir
+                  }}
+                  placeholder="Ingresa tu RUT (ej: 12345678-9)"
                   className="pl-10 pr-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
+                  required
                 />
                 <button
                   type="button"
@@ -69,18 +162,19 @@ export default function LoginPage() {
           </div>
 
           <Button
+            type="submit"
+            disabled={loading}
             className="w-full h-12 bg-[#005A9C] hover:bg-[#004080] text-white font-medium rounded-lg transition-colors"
             size="lg"
           >
-            Iniciar Sesión
+            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
 
-          <div className="text-center">
-            <Link href="/forgot-password" className="text-sm text-gray-600 hover:text-[#005A9C] transition-colors">
-              ¿Olvidaste tu contraseña?
-            </Link>
+          <div className="text-center space-y-2">
+            <p className="text-sm text-gray-600">Tu contraseña es tu RUT con guión (ej: 12345678-9)</p>
+            <p className="text-xs text-gray-500">¿Problemas para acceder? Contacta al administrador</p>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

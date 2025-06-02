@@ -3,9 +3,23 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Bell, UserRound, Gift, CalendarDays, Users, Inbox } from "lucide-react"
+import { Bell, UserRound, Gift, CalendarDays, Users, Inbox, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
+import { useAuth } from "@/hooks/useAuth"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useNotificationSystem } from "@/hooks/useNotificationSystem"
+import NotificationCenter from "@/components/notifications/notification-center"
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -14,8 +28,12 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, title }: MainLayoutProps) {
   const [activeTab, setActiveTab] = useState("perfil")
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const { unreadCount } = useNotificationSystem()
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const { signOut, profile, hasFullAccess, isInDevelopment } = useAuth()
 
   useEffect(() => {
     if (pathname.includes("/perfil")) setActiveTab("perfil")
@@ -25,7 +43,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
     if (pathname.includes("/sugerencias")) setActiveTab("sugerencias")
   }, [pathname])
 
-  const tabs = [
+  const allTabs = [
     { id: "perfil", label: "Perfil", icon: UserRound },
     { id: "beneficios", label: "Beneficios", icon: Gift },
     { id: "eventos", label: "Eventos", icon: CalendarDays },
@@ -33,14 +51,52 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
     { id: "sugerencias", label: "Sugerencias", icon: Inbox },
   ]
 
+  // Filtrar tabs según el acceso durante desarrollo
+  const tabs =
+    isInDevelopment && !hasFullAccess()
+      ? allTabs.filter((tab) => tab.id === "perfil") // Solo mostrar perfil para usuarios regulares
+      : allTabs // Mostrar todas las tabs para administradores o cuando no esté en desarrollo
+
+  const handleLogout = async () => {
+    const { error } = await signOut()
+    if (!error) {
+      router.push("/login")
+    }
+    setShowLogoutDialog(false)
+  }
+
+  const handleNotificacionesClick = () => {
+    setShowNotificationCenter(true)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Barra Superior */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
-        <Button variant="ghost" size="sm" className="p-2">
-          <Bell className="h-5 w-5 text-gray-600" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          {/* Saludo personalizado */}
+          {profile && (
+            <span className="text-sm text-gray-600 hidden sm:block">Hola, {profile.nombre_completo.split(" ")[0]}</span>
+          )}
+
+          {/* Botón de notificaciones - solo visible para administradores */}
+          {profile && profile.rol === "Administrador" && (
+            <div className="relative">
+              <Button variant="ghost" size="sm" className="p-2" onClick={handleNotificacionesClick}>
+                <Bell className="h-5 w-5 text-gray-600" />
+              </Button>
+              {unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 hover:bg-red-500"
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Área de Contenido Principal */}
@@ -73,8 +129,42 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
               </button>
             )
           })}
+
+          {/* Botón de Cerrar Sesión */}
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <LogOut className="h-5 w-5 mb-1" />
+            <span className="text-xs font-medium">Salir</span>
+          </button>
         </div>
       </nav>
+
+      {/* Notification Center */}
+      <NotificationCenter isOpen={showNotificationCenter} onClose={() => setShowNotificationCenter(false)} />
+
+      {/* Dialog de confirmación para cerrar sesión */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a iniciar sesión para acceder a la
+              aplicación.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+            >
+              Cerrar Sesión
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

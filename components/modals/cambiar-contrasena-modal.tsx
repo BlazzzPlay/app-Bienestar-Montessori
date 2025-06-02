@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Eye, EyeOff, Lock } from "lucide-react"
+import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useAuth } from "@/hooks/useAuth"
 
 interface CambiarContrasenaModalProps {
   isOpen: boolean
@@ -22,59 +23,100 @@ interface CambiarContrasenaModalProps {
 }
 
 export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContrasenaModalProps) {
-  const [contrasenaActual, setContrasenaActual] = useState("")
   const [nuevaContrasena, setNuevaContrasena] = useState("")
   const [confirmarContrasena, setConfirmarContrasena] = useState("")
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+
+  const { updatePassword, user } = useAuth()
+
+  // Simplificar la función validateRUTFormat para que solo valide formato básico:
+  const validateRUTFormat = (rut: string): { isValid: boolean; message?: string } => {
+    if (!rut || rut.trim() === "") {
+      return { isValid: false, message: "El RUT es obligatorio" }
+    }
+
+    // Limpiar RUT
+    const cleanRUT = rut.replace(/[.-]/g, "").toLowerCase()
+
+    if (cleanRUT.length < 8 || cleanRUT.length > 9) {
+      return { isValid: false, message: "El RUT debe tener entre 8 y 9 caracteres" }
+    }
+
+    const numbers = cleanRUT.slice(0, -1)
+    const verifier = cleanRUT.slice(-1)
+
+    if (!/^\d+$/.test(numbers)) {
+      return { isValid: false, message: "El RUT solo debe contener números y dígito verificador" }
+    }
+
+    if (!/^[0-9k]$/.test(verifier)) {
+      return { isValid: false, message: "Dígito verificador inválido (debe ser 0-9 o K)" }
+    }
+
+    return { isValid: true }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
-    // Validaciones
-    if (!contrasenaActual || !nuevaContrasena || !confirmarContrasena) {
+    // Validaciones mejoradas
+    if (!nuevaContrasena || !confirmarContrasena) {
       setError("Todos los campos son obligatorios")
       return
     }
 
-    if (nuevaContrasena.length < 6) {
-      setError("La nueva contraseña debe tener al menos 6 caracteres")
+    // Validar formato de RUT
+    const rutValidation = validateRUTFormat(nuevaContrasena)
+    if (!rutValidation.isValid) {
+      setError(rutValidation.message || "RUT inválido")
       return
     }
 
     if (nuevaContrasena !== confirmarContrasena) {
-      setError("Las contraseñas no coinciden")
+      setError("Los RUTs no coinciden")
+      return
+    }
+
+    // Validar que el nuevo RUT sea diferente al actual (si es posible obtenerlo)
+    if (
+      nuevaContrasena.replace(/[.-]/g, "").toLowerCase() ===
+      (user?.user_metadata?.current_rut || "").replace(/[.-]/g, "").toLowerCase()
+    ) {
+      setError("El nuevo RUT debe ser diferente al actual")
       return
     }
 
     setIsLoading(true)
 
     try {
-      // Aquí iría la lógica para cambiar la contraseña
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simular API call
+      const { error } = await updatePassword(nuevaContrasena)
 
-      // Limpiar formulario y cerrar modal
-      setContrasenaActual("")
-      setNuevaContrasena("")
-      setConfirmarContrasena("")
-      onClose()
+      if (error) {
+        setError(error.message || "Error al cambiar el RUT. Inténtalo nuevamente.")
+      } else {
+        setSuccess(true)
+        setTimeout(() => {
+          handleClose()
+        }, 2000)
+      }
     } catch (error) {
-      setError("Error al cambiar la contraseña. Inténtalo nuevamente.")
+      console.error("Error changing password:", error)
+      setError("Error inesperado. Inténtalo nuevamente.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const resetForm = () => {
-    setContrasenaActual("")
     setNuevaContrasena("")
     setConfirmarContrasena("")
     setError("")
-    setShowCurrentPassword(false)
+    setSuccess(false)
     setShowNewPassword(false)
     setShowConfirmPassword(false)
   }
@@ -84,57 +126,49 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
     onClose()
   }
 
+  if (success) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-md">
+          <div className="text-center py-6">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">¡RUT actualizado!</h3>
+            <p className="text-gray-600">Tu RUT ha sido cambiado exitosamente.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Lock className="h-5 w-5 text-[#005A9C]" />
-            <span>Cambiar Contraseña</span>
+            <span>Cambiar RUT</span>
           </DialogTitle>
           <DialogDescription>
-            Por tu seguridad, necesitamos verificar tu contraseña actual antes de establecer una nueva.
+            Establece un nuevo RUT para tu cuenta. Asegúrate de que sea correcto y fácil de recordar.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Contraseña actual */}
-          <div className="space-y-2">
-            <Label htmlFor="current-password" className="text-sm font-medium text-gray-700">
-              Contraseña Actual
-            </Label>
-            <div className="relative">
-              <Input
-                id="current-password"
-                type={showCurrentPassword ? "text" : "password"}
-                value={contrasenaActual}
-                onChange={(e) => setContrasenaActual(e.target.value)}
-                placeholder="Ingresa tu contraseña actual"
-                className="pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Nueva contraseña */}
+          {/* Nuevo RUT */}
           <div className="space-y-2">
             <Label htmlFor="new-password" className="text-sm font-medium text-gray-700">
-              Nueva Contraseña
+              Nuevo RUT
             </Label>
             <div className="relative">
               <Input
                 id="new-password"
                 type={showNewPassword ? "text" : "password"}
                 value={nuevaContrasena}
-                onChange={(e) => setNuevaContrasena(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                onChange={(e) => {
+                  setNuevaContrasena(e.target.value)
+                  if (error) setError("") // Limpiar error al escribir
+                }}
+                placeholder="Formato: 12345678-9"
                 className="pr-10"
                 required
               />
@@ -148,10 +182,10 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
             </div>
           </div>
 
-          {/* Confirmar contraseña */}
+          {/* Confirmar RUT */}
           <div className="space-y-2">
             <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
-              Confirmar Nueva Contraseña
+              Confirmar Nuevo RUT
             </Label>
             <div className="relative">
               <Input
@@ -159,7 +193,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmarContrasena}
                 onChange={(e) => setConfirmarContrasena(e.target.value)}
-                placeholder="Repite la nueva contraseña"
+                placeholder="Repite el nuevo RUT"
                 className="pr-10"
                 required
               />
@@ -185,7 +219,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
               Cancelar
             </Button>
             <Button type="submit" className="bg-[#005A9C] hover:bg-[#004080] text-white" disabled={isLoading}>
-              {isLoading ? "Cambiando..." : "Cambiar Contraseña"}
+              {isLoading ? "Cambiando..." : "Cambiar RUT"}
             </Button>
           </DialogFooter>
         </form>
