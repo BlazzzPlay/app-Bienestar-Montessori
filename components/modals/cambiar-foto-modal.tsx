@@ -3,7 +3,20 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Camera, Upload, X, CheckCircle, AlertTriangle, Info, Bug, Settings, RefreshCw, Plus } from "lucide-react"
+import {
+  Camera,
+  Upload,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Bug,
+  Settings,
+  RefreshCw,
+  Search,
+  Database,
+  Folder,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
@@ -19,7 +32,7 @@ import {
 } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { useAuth } from "@/hooks/useAuth"
-import { minimalAvatarStorage } from "@/lib/avatar-storage-minimal"
+import { diagnosticAvatarStorage } from "@/lib/avatar-storage-diagnostic"
 import { validateImageFile, validateImageDimensions } from "@/lib/image-utils"
 
 interface CambiarFotoModalProps {
@@ -59,52 +72,36 @@ export default function CambiarFotoModal({
   const [showDebug, setShowDebug] = useState(false)
   const [systemCheck, setSystemCheck] = useState<any>(null)
   const [isCheckingSystem, setIsCheckingSystem] = useState(false)
-  const [isCreatingBucket, setIsCreatingBucket] = useState(false)
+  const [showDiagnostic, setShowDiagnostic] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { user, profile } = useAuth()
 
-  // Verificar configuración del sistema al abrir
+  // Al abrir el modal, ejecutar automáticamente el diagnóstico
   useEffect(() => {
     if (isOpen) {
-      runSystemCheck()
+      // Pequeño delay para asegurar que el modal esté completamente abierto
+      setTimeout(() => {
+        runSystemCheck()
+      }, 500)
     }
   }, [isOpen])
 
   const runSystemCheck = async () => {
     setIsCheckingSystem(true)
     try {
-      console.log("🔍 Ejecutando verificación del sistema...")
-      const check = await minimalAvatarStorage.checkConfiguration()
+      console.log("🔍 Ejecutando diagnóstico completo...")
+      const check = await diagnosticAvatarStorage.runCompleteDiagnostic()
       setSystemCheck(check)
-      console.log("📊 Resultado de verificación:", check)
+      console.log("📊 Resultado del diagnóstico:", check)
     } catch (error) {
-      console.error("❌ Error en verificación:", error)
+      console.error("❌ Error en diagnóstico:", error)
       setSystemCheck({
         success: false,
         details: {},
-        errors: [`Error en verificación: ${error}`],
+        errors: [`Error en diagnóstico: ${error}`],
       })
     } finally {
       setIsCheckingSystem(false)
-    }
-  }
-
-  const createBucket = async () => {
-    setIsCreatingBucket(true)
-    setError("")
-    try {
-      const success = await minimalAvatarStorage.createBucketIfNotExists()
-      if (success) {
-        // Re-verificar el sistema
-        await runSystemCheck()
-      } else {
-        setError("No se pudo crear el bucket. Verifica los permisos en Supabase.")
-      }
-    } catch (error) {
-      console.error("Error creando bucket:", error)
-      setError(`Error creando bucket: ${error}`)
-    } finally {
-      setIsCreatingBucket(false)
     }
   }
 
@@ -189,11 +186,7 @@ export default function CambiarFotoModal({
     setDebugInfo("")
 
     try {
-      console.log("🚀 Iniciando subida minimal con:", {
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        userRut: profile.rut,
-      })
+      console.log("🚀 Iniciando subida con diagnóstico completo...")
 
       // Simular progreso
       const progressInterval = setInterval(() => {
@@ -202,12 +195,12 @@ export default function CambiarFotoModal({
             clearInterval(progressInterval)
             return 90
           }
-          return prev + 20
+          return prev + 10
         })
-      }, 200)
+      }, 400)
 
-      // Subir avatar con servicio minimal
-      const result = await minimalAvatarStorage.uploadAvatar(selectedFile, profile.rut)
+      // Subir avatar con diagnóstico
+      const result = await diagnosticAvatarStorage.uploadAvatar(selectedFile, profile.rut)
 
       clearInterval(progressInterval)
       setUploadProgress(100)
@@ -254,6 +247,7 @@ export default function CambiarFotoModal({
     setUploadProgress(0)
     setDebugInfo("")
     setShowDebug(false)
+    setShowDiagnostic(false)
     setSystemCheck(null)
     onClose()
   }
@@ -302,13 +296,14 @@ export default function CambiarFotoModal({
             <Camera className="h-5 w-5 text-[#005A9C]" />
             <span>Cambiar Foto de Perfil</span>
           </DialogTitle>
-          <DialogDescription>
-            Selecciona una nueva imagen para tu perfil. Versión simplificada para debugging.
+          <DialogDescription className="flex items-center space-x-2">
+            <Search className="h-4 w-4 text-blue-600" />
+            <span>Versión con diagnóstico avanzado para identificar problemas.</span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Estado del sistema */}
+          {/* Estado del sistema con diagnóstico */}
           {systemCheck && (
             <div
               className={`border rounded-lg p-3 ${systemCheck.success ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
@@ -317,7 +312,7 @@ export default function CambiarFotoModal({
                 <div className="flex items-center space-x-2">
                   <Settings className={`h-4 w-4 ${systemCheck.success ? "text-green-600" : "text-red-600"}`} />
                   <span className={`text-sm font-medium ${systemCheck.success ? "text-green-900" : "text-red-900"}`}>
-                    Estado del Sistema
+                    Diagnóstico del Sistema
                   </span>
                 </div>
                 <Button
@@ -337,28 +332,114 @@ export default function CambiarFotoModal({
                   <span>{systemCheck.details.databaseConnection ? "✅" : "❌"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Bucket avatars:</span>
-                  <span>{systemCheck.details.bucket ? "✅" : "❌"}</span>
+                  <span>Buckets encontrados:</span>
+                  <span>{systemCheck.details.bucketCount || 0}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Test upload:</span>
+                  <span>Bucket 'avatars':</span>
+                  <span>{systemCheck.details.bucket ? "✅" : "❌"}</span>
+                </div>
+                {systemCheck.details.bucket && (
+                  <div className="flex justify-between">
+                    <span>Archivos en bucket:</span>
+                    <span>{systemCheck.details.fileCount || 0}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>Test de subida:</span>
                   <span>{systemCheck.details.uploadTest?.success ? "✅" : "❌"}</span>
                 </div>
               </div>
 
-              {/* Botón para crear bucket si no existe */}
-              {!systemCheck.details.bucket && (
+              {/* Información detallada de buckets */}
+              {systemCheck.details.allBuckets && (
                 <div className="mt-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={createBucket}
-                    disabled={isCreatingBucket}
+                    onClick={() => setShowDiagnostic(!showDiagnostic)}
                     className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
                   >
-                    <Plus className="h-3 w-3 mr-1" />
-                    {isCreatingBucket ? "Creando bucket..." : "Crear bucket avatars"}
+                    <Database className="h-3 w-3 mr-1" />
+                    {showDiagnostic ? "Ocultar" : "Ver"} Diagnóstico Detallado
                   </Button>
+
+                  <Collapsible open={showDiagnostic} onOpenChange={setShowDiagnostic}>
+                    <CollapsibleContent className="space-y-3 mt-3">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center">
+                          <Folder className="h-4 w-4 mr-1" />
+                          Buckets Disponibles ({systemCheck.details.bucketCount})
+                        </h4>
+                        <div className="text-xs text-blue-700 space-y-1">
+                          {systemCheck.details.allBuckets.map((bucket: any, index: number) => (
+                            <div key={index} className="flex justify-between">
+                              <span>• {bucket.name}</span>
+                              <span className={bucket.name === "avatars" ? "text-green-600 font-bold" : ""}>
+                                {bucket.public ? "Público" : "Privado"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {systemCheck.details.bucket && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <h4 className="text-sm font-medium text-green-900 mb-2">Bucket 'avatars' Encontrado</h4>
+                          <div className="text-xs text-green-700 space-y-1">
+                            <div>ID: {systemCheck.details.bucket.id}</div>
+                            <div>Público: {systemCheck.details.bucket.public ? "Sí" : "No"}</div>
+                            <div>Límite: {systemCheck.details.bucket.file_size_limit || "Sin límite"} bytes</div>
+                            <div>Archivos: {systemCheck.details.fileCount || 0}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {systemCheck.details.uploadTest && (
+                        <div
+                          className={`border rounded-lg p-3 ${
+                            systemCheck.details.uploadTest.success
+                              ? "bg-green-50 border-green-200"
+                              : "bg-red-50 border-red-200"
+                          }`}
+                        >
+                          <h4
+                            className={`text-sm font-medium mb-2 ${
+                              systemCheck.details.uploadTest.success ? "text-green-900" : "text-red-900"
+                            }`}
+                          >
+                            Test de Subida
+                          </h4>
+                          <div
+                            className={`text-xs space-y-1 ${
+                              systemCheck.details.uploadTest.success ? "text-green-700" : "text-red-700"
+                            }`}
+                          >
+                            {systemCheck.details.uploadTest.success ? (
+                              <>
+                                <div>✅ Subida exitosa</div>
+                                <div>Archivo: {systemCheck.details.uploadTest.path}</div>
+                                <div>URL: {systemCheck.details.uploadTest.publicUrl}</div>
+                              </>
+                            ) : (
+                              <>
+                                <div>❌ Error: {systemCheck.details.uploadTest.error}</div>
+                                <div>Código: {systemCheck.details.uploadTest.errorCode}</div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">Configuración Supabase</h4>
+                        <div className="text-xs text-gray-700 space-y-1">
+                          <div>URL: {systemCheck.details.supabaseConfig?.urlPreview}</div>
+                          <div>Key: {systemCheck.details.supabaseConfig?.keyPreview}</div>
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
 
@@ -367,13 +448,6 @@ export default function CambiarFotoModal({
                   {systemCheck.errors.map((error: string, index: number) => (
                     <div key={index}>• {error}</div>
                   ))}
-                </div>
-              )}
-
-              {systemCheck.details.bucket && (
-                <div className="mt-2 text-xs text-gray-600">
-                  <div>Bucket público: {systemCheck.details.bucket.public ? "Sí" : "No"}</div>
-                  <div>Límite: {systemCheck.details.bucket.file_size_limit || "Sin límite"}</div>
                 </div>
               )}
             </div>
@@ -443,10 +517,13 @@ export default function CambiarFotoModal({
           {isLoading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Subiendo imagen...</span>
+                <span className="text-gray-600">Subiendo con diagnóstico completo...</span>
                 <span className="text-gray-600">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
+              <div className="text-xs text-gray-500 text-center">
+                Validando → Procesando → Verificando bucket → Subiendo archivo
+              </div>
             </div>
           )}
 
@@ -477,9 +554,10 @@ export default function CambiarFotoModal({
                 <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-700 space-y-1">
                   <p>
-                    <strong>Versión simplificada</strong> para debugging
+                    <strong>Versión con diagnóstico avanzado</strong>
                   </p>
                   <p>Formatos: JPG, PNG, WEBP | Máximo: 2MB</p>
+                  <p>Incluye logging detallado para identificar problemas</p>
                 </div>
               </div>
             </div>
@@ -499,7 +577,7 @@ export default function CambiarFotoModal({
                   className="text-blue-600 border-blue-300 hover:bg-blue-50"
                 >
                   <Settings className="h-3 w-3 mr-1" />
-                  {isCheckingSystem ? "Verificando..." : "Re-verificar"}
+                  {isCheckingSystem ? "Diagnosticando..." : "Re-diagnosticar"}
                 </Button>
                 {debugInfo && (
                   <Button

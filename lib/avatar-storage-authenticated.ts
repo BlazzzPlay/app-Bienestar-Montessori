@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+import { supabaseAuthService } from "./supabase-auth-service"
 import { processImage, validateImageFile } from "./image-utils"
 
 export interface AvatarUploadResult {
@@ -13,25 +14,27 @@ export interface AvatarUploadResult {
 }
 
 /**
- * Servicio de avatares ultra-simplificado para debugging
+ * Servicio de avatares con autenticación mejorada
  */
-export class MinimalAvatarStorageService {
-  private static instance: MinimalAvatarStorageService
+export class AuthenticatedAvatarStorageService {
+  private static instance: AuthenticatedAvatarStorageService
   private readonly BUCKET_NAME = "avatars"
 
-  static getInstance(): MinimalAvatarStorageService {
-    if (!MinimalAvatarStorageService.instance) {
-      MinimalAvatarStorageService.instance = new MinimalAvatarStorageService()
+  static getInstance(): AuthenticatedAvatarStorageService {
+    if (!AuthenticatedAvatarStorageService.instance) {
+      AuthenticatedAvatarStorageService.instance = new AuthenticatedAvatarStorageService()
     }
-    return MinimalAvatarStorageService.instance
+    return AuthenticatedAvatarStorageService.instance
   }
 
   /**
-   * Subir avatar con el mínimo de complejidad
+   * Subir avatar con autenticación mejorada
    */
-  async uploadAvatar(file: File, userRut: string): Promise<AvatarUploadResult> {
+  async uploadAvatar(file: File, userRut: string, userEmail: string, userId: string): Promise<AvatarUploadResult> {
+    let sessionCreated = false
+
     try {
-      console.log("🚀 Subida minimal iniciada...")
+      console.log("🚀 Iniciando subida autenticada...")
 
       // 1. Validaciones básicas
       const fileValidation = validateImageFile(file)
@@ -39,7 +42,22 @@ export class MinimalAvatarStorageService {
         return { success: false, error: fileValidation.error }
       }
 
-      // 2. Procesar imagen (simplificado)
+      // 2. Crear sesión temporal para la subida
+      console.log("🔐 Estableciendo autenticación...")
+      const authResult = await supabaseAuthService.createTemporarySession(userEmail, userId)
+
+      if (!authResult.success) {
+        return {
+          success: false,
+          error: "No se pudo establecer autenticación",
+          debugInfo: { authError: authResult.error },
+        }
+      }
+
+      sessionCreated = true
+
+      // 3. Procesar imagen
+      console.log("🖼️ Procesando imagen...")
       const processedImage = await processImage(file, {
         maxWidth: 300,
         maxHeight: 300,
@@ -47,13 +65,16 @@ export class MinimalAvatarStorageService {
         format: "jpeg",
       })
 
-      // 3. Generar nombre único
-      const fileName = `avatar_${userRut}_${Date.now()}.jpg`
+      // 4. Generar nombre único
+      const fileName = `avatar_${userRut.replace(/[.-]/g, "")}_${Date.now()}.jpg`
       console.log(`📝 Archivo: ${fileName}`)
 
-      // 4. Subida directa sin autenticación compleja
-      console.log("📤 Intentando subida...")
+      // 5. Verificar sesión antes de subir
+      const currentSession = await supabaseAuthService.getActiveSession()
+      console.log("🔍 Sesión activa:", currentSession ? "Sí" : "No")
 
+      // 6. Subida con autenticación
+      console.log("📤 Subiendo archivo...")
       const { data, error } = await supabase.storage.from(this.BUCKET_NAME).upload(fileName, processedImage.blob, {
         cacheControl: "3600",
         upsert: true,
@@ -64,19 +85,20 @@ export class MinimalAvatarStorageService {
         console.error("❌ Error de subida:", error)
         return {
           success: false,
-          error: `Error: ${error.message}`,
+          error: `Error de subida: ${error.message}`,
           debugInfo: {
             errorCode: error.name,
             errorMessage: error.message,
             fileName: fileName,
             fileSize: processedImage.size,
+            hasSession: !!currentSession,
           },
         }
       }
 
       console.log("✅ Subida exitosa:", data)
 
-      // 5. Obtener URL pública
+      // 7. Obtener URL pública
       const { data: urlData } = supabase.storage.from(this.BUCKET_NAME).getPublicUrl(fileName)
 
       return {
@@ -88,26 +110,33 @@ export class MinimalAvatarStorageService {
         },
       }
     } catch (error) {
-      console.error("❌ Excepción:", error)
+      console.error("❌ Excepción en subida:", error)
       return {
         success: false,
         error: `Excepción: ${error instanceof Error ? error.message : "Error desconocido"}`,
         debugInfo: { exception: String(error) },
       }
+    } finally {
+      // Limpiar sesión temporal
+      if (sessionCreated) {
+        console.log("🧹 Limpiando sesión temporal...")
+        await supabaseAuthService.clearTemporarySession()
+      }
     }
   }
 
   /**
-   * Verificar configuración básica
+   * Verificar configuración con autenticación
    */
-  async checkConfiguration(): Promise<{
+  async checkConfiguration(
+    userEmail: string,
+    userId: string,
+  ): Promise<{
     success: boolean
     details: any
     errors: string[]
-    instructions?: string[]
   }> {
     const errors: string[] = []
-    const instructions: string[] = []
     const details: any = {}
 
     try {
@@ -135,36 +164,46 @@ export class MinimalAvatarStorageService {
           console.log("✅ Bucket encontrado:", avatarsBucket)
         } else {
           errors.push(`Bucket '${this.BUCKET_NAME}' no encontrado`)
-          instructions.push("Crear bucket 'avatars' en Supabase Dashboard")
-          instructions.push("Configurar como público")
-          instructions.push("Establecer límite de 2MB por archivo")
         }
       }
 
-      // 3. Probar subida de archivo de prueba (solo si el bucket existe)
+      // 3. Test de autenticación y subida
       if (details.bucket) {
-        console.log("🔍 Probando subida de prueba...")
+        console.log("🔍 Probando autenticación y subida...")
         try {
-          // Usar un blob de imagen en lugar de texto plano
-          const testBlob = await this.createTestImageBlob()
-          const testFileName = `test_${Date.now()}.jpg`
+          // Crear sesión temporal
+          const authResult = await supabaseAuthService.createTemporarySession(userEmail, userId)
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from(this.BUCKET_NAME)
-            .upload(testFileName, testBlob, { upsert: true, contentType: "image/jpeg" })
-
-          if (uploadError) {
-            errors.push(`Test upload: ${uploadError.message}`)
-            details.uploadTest = { success: false, error: uploadError.message }
+          if (!authResult.success) {
+            errors.push(`Auth test: ${authResult.error}`)
+            details.authTest = { success: false, error: authResult.error }
           } else {
-            details.uploadTest = { success: true, path: uploadData.path }
-            console.log("✅ Test upload OK")
+            details.authTest = { success: true }
 
-            // Limpiar archivo de prueba
-            await supabase.storage.from(this.BUCKET_NAME).remove([testFileName])
+            // Probar subida con autenticación
+            const testBlob = await this.createTestImageBlob()
+            const testFileName = `test_auth_${Date.now()}.jpg`
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from(this.BUCKET_NAME)
+              .upload(testFileName, testBlob, { upsert: true, contentType: "image/jpeg" })
+
+            if (uploadError) {
+              errors.push(`Test upload: ${uploadError.message}`)
+              details.uploadTest = { success: false, error: uploadError.message }
+            } else {
+              details.uploadTest = { success: true, path: uploadData.path }
+              console.log("✅ Test upload con auth OK")
+
+              // Limpiar archivo de prueba
+              await supabase.storage.from(this.BUCKET_NAME).remove([testFileName])
+            }
+
+            // Limpiar sesión de prueba
+            await supabaseAuthService.clearTemporarySession()
           }
-        } catch (uploadException) {
-          errors.push(`Test upload exception: ${uploadException}`)
+        } catch (authException) {
+          errors.push(`Auth/Upload test exception: ${authException}`)
         }
       } else {
         errors.push("Test upload: No se puede probar sin bucket")
@@ -174,7 +213,6 @@ export class MinimalAvatarStorageService {
         success: errors.length === 0,
         details,
         errors,
-        instructions: instructions.length > 0 ? instructions : undefined,
       }
     } catch (error) {
       errors.push(`Error general: ${error}`)
@@ -182,26 +220,23 @@ export class MinimalAvatarStorageService {
         success: false,
         details,
         errors,
-        instructions,
       }
     }
   }
 
   /**
-   * Crear un blob de imagen de prueba (1x1 pixel JPEG)
+   * Crear un blob de imagen de prueba
    */
   private async createTestImageBlob(): Promise<Blob> {
-    // Crear un canvas de 1x1 pixel
     const canvas = document.createElement("canvas")
     canvas.width = 1
     canvas.height = 1
     const ctx = canvas.getContext("2d")
     if (ctx) {
-      ctx.fillStyle = "red"
+      ctx.fillStyle = "blue"
       ctx.fillRect(0, 0, 1, 1)
     }
 
-    // Convertir a blob
     return new Promise((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
@@ -218,4 +253,4 @@ export class MinimalAvatarStorageService {
   }
 }
 
-export const minimalAvatarStorage = MinimalAvatarStorageService.getInstance()
+export const authenticatedAvatarStorage = AuthenticatedAvatarStorageService.getInstance()
