@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Bell, UserRound, Gift, CalendarDays, Users, Inbox, LogOut } from "lucide-react"
+import { Bell, UserRound, Gift, CalendarDays, Users, Inbox, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
@@ -41,6 +41,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
     if (pathname.includes("/eventos")) setActiveTab("eventos")
     if (pathname.includes("/directorio")) setActiveTab("directorio")
     if (pathname.includes("/sugerencias")) setActiveTab("sugerencias")
+    if (pathname.includes("/admin")) setActiveTab("admin")
   }, [pathname])
 
   const allTabs = [
@@ -51,11 +52,19 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
     { id: "sugerencias", label: "Sugerencias", icon: Inbox },
   ]
 
+  // Agregar tab de admin solo para administradores
+  const adminTab = { id: "admin", label: "Admin", icon: Settings }
+
   // Filtrar tabs según el acceso durante desarrollo
-  const tabs =
+  let tabs =
     isInDevelopment && !hasFullAccess()
       ? allTabs.filter((tab) => tab.id === "perfil") // Solo mostrar perfil para usuarios regulares
       : allTabs // Mostrar todas las tabs para administradores o cuando no esté en desarrollo
+
+  // Agregar tab de admin para administradores
+  if (hasFullAccess()) {
+    tabs = [...tabs, adminTab]
+  }
 
   const handleLogout = async () => {
     const { error } = await signOut()
@@ -119,6 +128,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                   if (tab.id === "eventos") router.push("/eventos")
                   if (tab.id === "directorio") router.push("/directorio")
                   if (tab.id === "sugerencias") router.push("/sugerencias")
+                  if (tab.id === "admin") router.push("/admin")
                 }}
                 className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
                   isActive ? "text-[#005A9C] bg-blue-50" : "text-gray-600 hover:text-gray-900"

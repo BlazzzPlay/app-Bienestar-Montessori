@@ -94,9 +94,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo placeholder */}
         <div className="text-center">
-          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-[#005A9C] to-[#004080] rounded-full flex items-center justify-center mb-6 shadow-lg">
-            <span className="text-white text-2xl font-bold">BM</span>
-          </div>
+          <img
+            src="https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png"
+            alt="Logo Bienestar Montessori"
+            className="w-32 h-auto mx-auto mb-6"
+          />
           <h1 className="text-3xl font-bold text-gray-900 font-sans">Bienestar Montessori</h1>
           <p className="text-gray-600 mt-2">Accede a tu portal de beneficios</p>
         </div>

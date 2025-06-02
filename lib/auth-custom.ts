@@ -1,5 +1,4 @@
-import { supabase } from "./supabase"
-import type { Perfil } from "./supabase"
+import { database } from "./database"
 
 // Clave para almacenar la sesión en localStorage
 const SESSION_KEY = "bienestar-montessori-session"
@@ -36,7 +35,7 @@ const validateRUTBasicFormat = (rut: string): boolean => {
 }
 
 export const authCustom = {
-  // Iniciar sesión con correo y RUT
+  // Iniciar sesión con correo y RUT usando la base de datos real
   async signInWithEmailAndRut(email: string, rut: string) {
     try {
       // Validaciones más estrictas
@@ -64,27 +63,13 @@ export const authCustom = {
         }
       }
 
-      // Buscar usuario por email (case insensitive)
-      const { data: perfil, error: perfilError } = await supabase
-        .from("perfiles")
-        .select("*")
-        .ilike("correo", email.toLowerCase())
-        .single()
+      // Usar la función de autenticación de la base de datos
+      const { data: perfil, error: authError } = await database.authenticateUser(email, rut)
 
-      if (perfilError || !perfil) {
+      if (authError || !perfil) {
         return {
           data: null,
-          error: { message: "Usuario no encontrado. Verifica tu correo institucional." },
-        }
-      }
-
-      // Validar RUT (normalizar ambos para comparación)
-      const normalizeRUT = (rut: string) => rut.replace(/[.-]/g, "").toLowerCase()
-
-      if (normalizeRUT(perfil.rut) !== normalizeRUT(rut)) {
-        return {
-          data: null,
-          error: { message: "RUT incorrecto. Verifica tu RUT y el dígito verificador." },
+          error: authError || { message: "Error de autenticación" },
         }
       }
 
@@ -183,39 +168,10 @@ export const authCustom = {
     }
   },
 
-  // Cambiar contraseña (RUT)
-  async updatePassword(userId: string, newRut: string) {
-    try {
-      const { data, error } = await supabase
-        .from("perfiles")
-        .update({ rut: newRut, updated_at: new Date().toISOString() })
-        .eq("id", userId)
-        .select()
-        .single()
-
-      if (error) {
-        return { data: null, error }
-      }
-
-      // Actualizar sesión si existe
-      const sessionData = localStorage.getItem(SESSION_KEY)
-      if (sessionData) {
-        const session = JSON.parse(sessionData) as CustomSession
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-      }
-
-      return { data, error: null }
-    } catch (error) {
-      console.error("Error al cambiar contraseña:", error)
-      return { data: null, error: { message: "Error al cambiar contraseña" } }
-    }
-  },
-
-  // Obtener perfil del usuario
+  // Obtener perfil del usuario usando la base de datos real
   async getProfile(userId: string) {
     try {
-      const { data, error } = await supabase.from("perfiles").select("*").eq("id", userId).single()
-
+      const { data, error } = await database.getProfile(userId)
       return { data, error }
     } catch (error) {
       console.error("Error al obtener perfil:", error)
@@ -223,15 +179,10 @@ export const authCustom = {
     }
   },
 
-  // Actualizar perfil
-  async updateProfile(userId: string, updates: Partial<Perfil>) {
+  // Actualizar perfil usando la base de datos real
+  async updateProfile(userId: string, updates: any) {
     try {
-      const { data, error } = await supabase
-        .from("perfiles")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", userId)
-        .select()
-        .single()
+      const { data, error } = await database.updateProfile(userId, updates)
 
       if (error) {
         return { data: null, error }

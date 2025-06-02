@@ -60,23 +60,19 @@ export const database = {
   },
 
   async registrarUsoBeneficio(beneficioId: number, usuarioId: string) {
-    // Insertar registro de uso
-    const { error: insertError } = await supabase
-      .from("registros_uso_beneficios")
-      .insert({ beneficio_id: beneficioId, usuario_id: usuarioId })
-
-    if (insertError) return { error: insertError }
-
-    // Incrementar contador
-    const { data, error } = await supabase.rpc("incrementar_contador_beneficio", {
-      beneficio_id: beneficioId,
-    })
+    // Incrementar contador directamente
+    const { data, error } = await supabase
+      .from("beneficios")
+      .update({ contador_usos: supabase.sql`contador_usos + 1` })
+      .eq("id", beneficioId)
+      .select()
+      .single()
 
     return { data, error }
   },
 
   // PUBLICACIONES (Eventos y Noticias)
-  async getPublicaciones(categoria?: "Evento" | "Noticia") {
+  async getPublicaciones(categoria?: "Evento" | "Noticia" | "Comunicado") {
     let query = supabase.from("publicaciones").select("*").order("fecha_publicacion", { ascending: false })
 
     if (categoria) {
@@ -202,9 +198,31 @@ export const database = {
 
   // ESTADÍSTICAS
   async getEstadisticasUsuario(usuarioId: string) {
-    const { data, error } = await supabase.from("registros_uso_beneficios").select("id").eq("usuario_id", usuarioId)
+    // Contar beneficios utilizados por el usuario
+    const { count, error } = await supabase
+      .from("comentarios_beneficios")
+      .select("*", { count: "exact", head: true })
+      .eq("usuario_id", usuarioId)
 
-    const beneficiosUtilizados = data?.length || 0
+    const beneficiosUtilizados = count || 0
     return { beneficiosUtilizados, error }
+  },
+
+  // AUTENTICACIÓN PERSONALIZADA
+  async authenticateUser(email: string, rut: string) {
+    const { data, error } = await supabase.from("perfiles").select("*").ilike("correo", email.toLowerCase()).single()
+
+    if (error || !data) {
+      return { data: null, error: { message: "Usuario no encontrado" } }
+    }
+
+    // Normalizar RUTs para comparación
+    const normalizeRUT = (rut: string) => rut.replace(/[.-]/g, "").toLowerCase()
+
+    if (normalizeRUT(data.rut) !== normalizeRUT(rut)) {
+      return { data: null, error: { message: "RUT incorrecto" } }
+    }
+
+    return { data, error: null }
   },
 }

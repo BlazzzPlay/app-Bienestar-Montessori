@@ -115,6 +115,28 @@ const TEMP_PUBLICACIONES = [
   },
 ]
 
+// Datos temporales para sugerencias
+const TEMP_SUGERENCIAS = [
+  {
+    id: 1,
+    contenido: "Sería genial tener más opciones de descuentos en restaurantes vegetarianos.",
+    fecha_creacion: "2024-12-15T10:30:00Z",
+    leido: false,
+  },
+  {
+    id: 2,
+    contenido: "Propongo organizar más talleres de bienestar emocional, fueron muy útiles.",
+    fecha_creacion: "2024-12-18T14:20:00Z",
+    leido: false,
+  },
+  {
+    id: 3,
+    contenido: "¿Podrían agregar convenios con gimnasios más cerca del colegio?",
+    fecha_creacion: "2024-12-20T09:15:00Z",
+    leido: true,
+  },
+]
+
 export const tempDatabase = {
   // PERFILES
   async getProfile(userId: string) {
@@ -211,7 +233,26 @@ export const tempDatabase = {
 
   // SUGERENCIAS
   async createSugerencia(contenido: string) {
-    return { data: { id: Date.now(), contenido }, error: null }
+    const nuevaSugerencia = {
+      id: Date.now(),
+      contenido,
+      fecha_creacion: new Date().toISOString(),
+      leido: false,
+    }
+    TEMP_SUGERENCIAS.unshift(nuevaSugerencia)
+    return { data: nuevaSugerencia, error: null }
+  },
+
+  async getSugerencias() {
+    return { data: TEMP_SUGERENCIAS, error: null }
+  },
+
+  async marcarSugerenciaLeida(id: number) {
+    const sugerencia = TEMP_SUGERENCIAS.find((s) => s.id === id)
+    if (sugerencia) {
+      sugerencia.leido = true
+    }
+    return { data: sugerencia, error: null }
   },
 
   // ESTADÍSTICAS

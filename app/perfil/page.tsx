@@ -181,7 +181,7 @@ export default function PerfilPage() {
               </div>
             </div>
 
-            {/* Estadísticas */}
+            {/* Estadísticas - Temporalmente oculto hasta implementación completa
             <div className="text-center space-y-3">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Estadísticas</h3>
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
@@ -202,6 +202,7 @@ export default function PerfilPage() {
                 )}
               </div>
             </div>
+            */}
 
             {/* Indicador de Estado de Bienestar */}
             <div className="flex justify-center">
