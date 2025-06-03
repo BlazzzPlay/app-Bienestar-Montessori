@@ -8,7 +8,11 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Bienestar Montessori",
   description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
-    generator: 'v0.dev'
+  generator: "v0.dev",
+  icons: {
+    icon: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+    apple: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+  },
 }
 
 export default function RootLayout({

@@ -1,0 +1,26 @@
+{
+  "name": "Bienestar Montessori",
+  "short_name": "Bienestar",
+  "description": "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#005A9C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "es"
+}
