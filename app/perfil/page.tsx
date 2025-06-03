@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import MainLayout from "@/components/main-layout"
 import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
@@ -133,15 +132,27 @@ export default function PerfilPage() {
           <CardContent className="p-6 space-y-6">
             {/* Avatar y Nombre */}
             <div className="text-center space-y-4">
-              <Avatar className="w-28 h-28 mx-auto ring-4 ring-[#005A9C] ring-opacity-20">
-                <AvatarImage src={profile.avatar_url || "/placeholder.svg"} alt={profile.nombre_completo} />
-                <AvatarFallback className="text-2xl font-semibold bg-gradient-to-br from-[#005A9C] to-[#004080] text-white">
-                  {profile.nombre_completo
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-[300px] h-[300px] mx-auto relative">
+                <img
+                  src={profile.avatar_url || "/placeholder.svg?height=300&width=300&query=avatar"}
+                  alt={profile.nombre_completo}
+                  className="w-full h-full object-cover rounded-2xl border-4 border-[#005A9C] shadow-xl"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = "/placeholder.svg?height=300&width=300"
+                  }}
+                />
+                {!profile.avatar_url && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#005A9C] to-[#004080] rounded-2xl border-4 border-[#005A9C] shadow-xl flex items-center justify-center">
+                    <span className="text-white text-6xl font-bold">
+                      {profile.nombre_completo
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </span>
+                  </div>
+                )}
+              </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{profile.nombre_completo}</h2>
                 <p className="text-sm text-gray-600">{profile.cargo}</p>
