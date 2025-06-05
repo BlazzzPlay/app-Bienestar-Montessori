@@ -20,14 +20,12 @@ export default function LoginPage() {
   const { signIn, isAuthenticated } = useAuth()
   const router = useRouter()
 
-  // Redirigir si ya está autenticado
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/perfil")
     }
   }, [isAuthenticated, router])
 
-  // Validar formato de RUT
   const validateRUT = (rut: string): boolean => {
     const cleanRUT = rut.replace(/[.-]/g, "")
     if (cleanRUT.length < 8 || cleanRUT.length > 9) return false
@@ -66,10 +64,10 @@ export default function LoginPage() {
       return
     }
 
-    const { error } = await signIn(email, password)
+    const result = await signIn(email, password)
 
-    if (error) {
-      setError(error.message)
+    if (result.error) {
+      setError(result.error.message)
     } else {
       router.push("/perfil")
     }
@@ -80,7 +78,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-8">
-        {/* Logo */}
         <div className="text-center">
           <img
             src="https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png"
@@ -91,7 +88,6 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">Accede a tu portal de beneficios</p>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <Alert variant="destructive">
