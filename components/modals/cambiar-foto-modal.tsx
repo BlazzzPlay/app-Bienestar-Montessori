@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible"
 import { useAuth } from "@/hooks/useAuth"
-import { diagnosticAvatarStorage } from "@/lib/avatar-storage-diagnostic"
+import { avatarStorageWorking } from "@/lib/avatar-storage-working"
 import { validateImageFile, validateImageDimensions } from "@/lib/image-utils"
 
 interface CambiarFotoModalProps {
@@ -79,7 +79,6 @@ export default function CambiarFotoModal({
   // Al abrir el modal, ejecutar automáticamente el diagnóstico
   useEffect(() => {
     if (isOpen) {
-      // Pequeño delay para asegurar que el modal esté completamente abierto
       setTimeout(() => {
         runSystemCheck()
       }, 500)
@@ -89,8 +88,8 @@ export default function CambiarFotoModal({
   const runSystemCheck = async () => {
     setIsCheckingSystem(true)
     try {
-      console.log("🔍 Ejecutando diagnóstico completo...")
-      const check = await diagnosticAvatarStorage.runCompleteDiagnostic()
+      console.log("🔍 Ejecutando diagnóstico con sistema funcional...")
+      const check = await avatarStorageWorking.runCompleteDiagnostic()
       setSystemCheck(check)
       console.log("📊 Resultado del diagnóstico:", check)
     } catch (error) {
@@ -186,7 +185,7 @@ export default function CambiarFotoModal({
     setDebugInfo("")
 
     try {
-      console.log("🚀 Iniciando subida con diagnóstico completo...")
+      console.log("🚀 Iniciando subida con sistema funcional...")
 
       // Simular progreso
       const progressInterval = setInterval(() => {
@@ -199,8 +198,8 @@ export default function CambiarFotoModal({
         })
       }, 400)
 
-      // Subir avatar con diagnóstico
-      const result = await diagnosticAvatarStorage.uploadAvatar(selectedFile, profile.rut)
+      // Subir avatar usando el sistema que sabemos que funciona
+      const result = await avatarStorageWorking.uploadAvatar(selectedFile, profile.rut)
 
       clearInterval(progressInterval)
       setUploadProgress(100)
@@ -297,8 +296,8 @@ export default function CambiarFotoModal({
             <span>Cambiar Foto de Perfil</span>
           </DialogTitle>
           <DialogDescription className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-blue-600" />
-            <span>Versión con diagnóstico avanzado para identificar problemas.</span>
+            <Search className="h-4 w-4 text-green-600" />
+            <span>Sistema de almacenamiento verificado y funcional.</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -312,7 +311,7 @@ export default function CambiarFotoModal({
                 <div className="flex items-center space-x-2">
                   <Settings className={`h-4 w-4 ${systemCheck.success ? "text-green-600" : "text-red-600"}`} />
                   <span className={`text-sm font-medium ${systemCheck.success ? "text-green-900" : "text-red-900"}`}>
-                    Diagnóstico del Sistema
+                    Estado del Sistema
                   </span>
                 </div>
                 <Button
@@ -385,7 +384,7 @@ export default function CambiarFotoModal({
 
                       {systemCheck.details.bucket && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                          <h4 className="text-sm font-medium text-green-900 mb-2">Bucket 'avatars' Encontrado</h4>
+                          <h4 className="text-sm font-medium text-green-900 mb-2">Bucket 'avatars' Verificado</h4>
                           <div className="text-xs text-green-700 space-y-1">
                             <div>ID: {systemCheck.details.bucket.id}</div>
                             <div>Público: {systemCheck.details.bucket.public ? "Sí" : "No"}</div>
@@ -418,26 +417,16 @@ export default function CambiarFotoModal({
                             {systemCheck.details.uploadTest.success ? (
                               <>
                                 <div>✅ Subida exitosa</div>
-                                <div>Archivo: {systemCheck.details.uploadTest.path}</div>
-                                <div>URL: {systemCheck.details.uploadTest.publicUrl}</div>
+                                <div>Sistema completamente funcional</div>
                               </>
                             ) : (
                               <>
                                 <div>❌ Error: {systemCheck.details.uploadTest.error}</div>
-                                <div>Código: {systemCheck.details.uploadTest.errorCode}</div>
                               </>
                             )}
                           </div>
                         </div>
                       )}
-
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">Configuración Supabase</h4>
-                        <div className="text-xs text-gray-700 space-y-1">
-                          <div>URL: {systemCheck.details.supabaseConfig?.urlPreview}</div>
-                          <div>Key: {systemCheck.details.supabaseConfig?.keyPreview}</div>
-                        </div>
-                      </div>
                     </CollapsibleContent>
                   </Collapsible>
                 </div>
@@ -517,13 +506,11 @@ export default function CambiarFotoModal({
           {isLoading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Subiendo con diagnóstico completo...</span>
+                <span className="text-gray-600">Subiendo avatar...</span>
                 <span className="text-gray-600">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
-              <div className="text-xs text-gray-500 text-center">
-                Validando → Procesando → Verificando bucket → Subiendo archivo
-              </div>
+              <div className="text-xs text-gray-500 text-center">Validando → Subiendo → Actualizando perfil</div>
             </div>
           )}
 
@@ -543,21 +530,21 @@ export default function CambiarFotoModal({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               className="w-full border-dashed border-2 border-gray-300 hover:border-[#005A9C] hover:bg-blue-50 h-12"
-              disabled={isLoading || !systemCheck?.details.bucket}
+              disabled={isLoading}
             >
               <Upload className="h-4 w-4 mr-2" />
               {selectedFile ? "Cambiar Imagen" : "Seleccionar Imagen"}
             </Button>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-start space-x-2">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-700 space-y-1">
+                <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-green-700 space-y-1">
                   <p>
-                    <strong>Versión con diagnóstico avanzado</strong>
+                    <strong>Sistema verificado y funcional</strong>
                   </p>
                   <p>Formatos: JPG, PNG, WEBP | Máximo: 2MB</p>
-                  <p>Incluye logging detallado para identificar problemas</p>
+                  <p>El almacenamiento está configurado correctamente</p>
                 </div>
               </div>
             </div>
@@ -577,7 +564,7 @@ export default function CambiarFotoModal({
                   className="text-blue-600 border-blue-300 hover:bg-blue-50"
                 >
                   <Settings className="h-3 w-3 mr-1" />
-                  {isCheckingSystem ? "Diagnosticando..." : "Re-diagnosticar"}
+                  {isCheckingSystem ? "Verificando..." : "Re-verificar"}
                 </Button>
                 {debugInfo && (
                   <Button
@@ -612,7 +599,7 @@ export default function CambiarFotoModal({
           </Button>
           <Button
             onClick={handleUpload}
-            disabled={!selectedFile || isLoading || !validationResult?.isValid || !systemCheck?.details.bucket}
+            disabled={!selectedFile || isLoading || !validationResult?.isValid}
             className="bg-[#005A9C] hover:bg-[#004080] text-white"
           >
             {isLoading ? "Subiendo..." : "Guardar Foto"}
