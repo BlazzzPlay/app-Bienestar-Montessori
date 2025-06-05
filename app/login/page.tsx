@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AtSign, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -29,21 +27,14 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router])
 
-  // Simplificar la función validateRUT para que solo valide formato básico
+  // Validar formato de RUT
   const validateRUT = (rut: string): boolean => {
-    // Remover puntos y guiones para validación
     const cleanRUT = rut.replace(/[.-]/g, "")
-
-    // Verificar que tenga entre 8 y 9 caracteres
     if (cleanRUT.length < 8 || cleanRUT.length > 9) return false
-
-    // Verificar que los primeros caracteres sean números
     const numbers = cleanRUT.slice(0, -1)
     const verifier = cleanRUT.slice(-1).toLowerCase()
-
     if (!/^\d+$/.test(numbers)) return false
     if (!/^[0-9k]$/.test(verifier)) return false
-
     return true
   }
 
@@ -63,15 +54,12 @@ export default function LoginPage() {
       return
     }
 
-    // Validar que el email sea del dominio institucional
     if (!email.endsWith("@colegiomontessori.cl")) {
       setError("Debes usar tu correo institucional (@colegiomontessori.cl)")
       setLoading(false)
       return
     }
 
-    // En handleSubmit, cambiar el mensaje de error por uno más simple:
-    // Validar formato de RUT
     if (!validateRUT(password)) {
       setError("El RUT debe tener un formato válido (ej: 12345678-9)")
       setLoading(false)
@@ -92,7 +80,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-8">
-        {/* Logo placeholder */}
+        {/* Logo */}
         <div className="text-center">
           <img
             src="https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png"
@@ -125,7 +113,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value)
-                    if (error) setError("") // Limpiar error al escribir
+                    if (error) setError("")
                   }}
                   placeholder="usuario@colegiomontessori.cl"
                   className="pl-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
@@ -146,7 +134,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    if (error) setError("") // Limpiar error al escribir
+                    if (error) setError("")
                   }}
                   placeholder="Ingresa tu RUT (ej: 12345678-9)"
                   className="pl-10 pr-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
