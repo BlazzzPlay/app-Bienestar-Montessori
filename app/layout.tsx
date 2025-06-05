@@ -1,45 +1,16 @@
-import type React from "react"
-import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Bienestar Montessori",
   description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
-  generator: "v0.dev",
   manifest: "/manifest.json",
-  icons: {
-    icon: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
-    apple: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Bienestar Montessori",
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  openGraph: {
-    type: "website",
-    siteName: "Bienestar Montessori",
-    title: "Bienestar Montessori",
-    description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
-  },
-  twitter: {
-    card: "summary",
-    title: "Bienestar Montessori",
-    description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
-  },
+    generator: 'v0.dev'
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>

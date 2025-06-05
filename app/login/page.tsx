@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 import { AtSign, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,33 +25,22 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router])
 
-  const validateRUT = (rut: string): boolean => {
+  const validateEmail = (email: string) => {
+    return email.endsWith("@colegiomontessori.cl")
+  }
+
+  const validateRUT = (rut: string) => {
     const cleanRUT = rut.replace(/[.-]/g, "")
     if (cleanRUT.length < 8 || cleanRUT.length > 9) return false
-    const numbers = cleanRUT.slice(0, -1)
-    const verifier = cleanRUT.slice(-1).toLowerCase()
-    if (!/^\d+$/.test(numbers)) return false
-    if (!/^[0-9k]$/.test(verifier)) return false
     return true
   }
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@colegiomontessori\.cl$/
-    return emailRegex.test(email.toLowerCase())
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     if (!validateEmail(email)) {
-      setError("Debes usar tu correo institucional válido (@colegiomontessori.cl)")
-      setLoading(false)
-      return
-    }
-
-    if (!email.endsWith("@colegiomontessori.cl")) {
       setError("Debes usar tu correo institucional (@colegiomontessori.cl)")
       setLoading(false)
       return
@@ -64,12 +52,15 @@ export default function LoginPage() {
       return
     }
 
-    const result = await signIn(email, password)
-
-    if (result.error) {
-      setError(result.error.message)
-    } else {
-      router.push("/perfil")
+    try {
+      const result = await signIn(email, password)
+      if (result.error) {
+        setError(result.error.message || "Error al iniciar sesión")
+      } else {
+        router.push("/perfil")
+      }
+    } catch (err) {
+      setError("Error al iniciar sesión")
     }
 
     setLoading(false)
