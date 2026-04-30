@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 // Importar DevelopmentGuard al inicio del archivo
@@ -23,8 +23,8 @@ export default function DetalleBeneficioPage() {
   useEffect(() => {
     const loadData = async () => {
       const [beneficioResult, comentariosResult] = await Promise.all([
-        tempDatabase.getBeneficio(Number(id)),
-        tempDatabase.getComentariosBeneficio(Number(id)),
+        database.getBeneficio(Number(id)),
+        database.getComentariosBeneficio(Number(id)),
       ])
 
       if (beneficioResult.data) {

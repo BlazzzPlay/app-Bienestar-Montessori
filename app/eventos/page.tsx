@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import MainLayout from "@/components/main-layout"
 import { useRouter } from "next/navigation"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 import { useEffect } from "react"
 // Importar DevelopmentGuard al inicio del archivo
 import DevelopmentGuard from "@/components/development-guard"
@@ -32,7 +32,7 @@ export default function EventosPage() {
 
   useEffect(() => {
     const loadPublicaciones = async () => {
-      const { data } = await tempDatabase.getPublicaciones()
+      const { data } = await database.getPublicaciones()
       if (data) {
         setPublicaciones(
           data.map((p) => ({

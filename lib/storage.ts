@@ -1,46 +1,84 @@
-import { supabase } from "./supabase"
+// Almacenamiento local de imágenes usando base64
+const AVATAR_STORAGE_KEY = "bm_avatars"
+
+interface StoredAvatar {
+  userId: string
+  dataUrl: string
+  createdAt: string
+}
+
+function getStoredAvatars(): StoredAvatar[] {
+  if (typeof window === "undefined") return []
+  try {
+    const data = localStorage.getItem(AVATAR_STORAGE_KEY)
+    return data ? JSON.parse(data) : []
+  } catch {
+    return []
+  }
+}
+
+function saveStoredAvatars(avatars: StoredAvatar[]) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(avatars))
+  } catch (e) {
+    console.error("Error saving avatar:", e)
+  }
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
 export const storage = {
-  // Subir avatar
   async uploadAvatar(file: File, userId: string) {
-    const fileExt = file.name.split(".").pop()
-    const fileName = `${userId}-${Math.random()}.${fileExt}`
-    const filePath = `avatars/${fileName}`
+    try {
+      const dataUrl = await fileToBase64(file)
+      const avatars = getStoredAvatars()
+      const existingIndex = avatars.findIndex((a) => a.userId === userId)
 
-    const { data, error } = await supabase.storage.from("avatars").upload(filePath, file)
+      const entry: StoredAvatar = {
+        userId,
+        dataUrl,
+        createdAt: new Date().toISOString(),
+      }
 
-    if (error) return { data: null, error }
+      if (existingIndex >= 0) {
+        avatars[existingIndex] = entry
+      } else {
+        avatars.push(entry)
+      }
 
-    // Obtener URL pública
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("avatars").getPublicUrl(filePath)
-
-    return { data: { path: filePath, url: publicUrl }, error: null }
+      saveStoredAvatars(avatars)
+      return { data: { path: `local://avatar/${userId}`, url: dataUrl }, error: null }
+    } catch (error) {
+      return { data: null, error: { message: "Error al procesar la imagen" } }
+    }
   },
 
-  // Subir imagen de beneficio
-  async uploadBeneficioImage(file: File, beneficioId: number) {
-    const fileExt = file.name.split(".").pop()
-    const fileName = `beneficio-${beneficioId}-${Math.random()}.${fileExt}`
-    const filePath = `beneficios/${fileName}`
-
-    const { data, error } = await supabase.storage.from("beneficios").upload(filePath, file)
-
-    if (error) return { data: null, error }
-
-    // Obtener URL pública
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("beneficios").getPublicUrl(filePath)
-
-    return { data: { path: filePath, url: publicUrl }, error: null }
+  async getAvatarUrl(userId: string) {
+    const avatars = getStoredAvatars()
+    const avatar = avatars.find((a) => a.userId === userId)
+    return avatar?.dataUrl || null
   },
 
-  // Eliminar archivo
-  async deleteFile(bucket: string, path: string) {
-    const { data, error } = await supabase.storage.from(bucket).remove([path])
+  async uploadBeneficioImage(file: File, _beneficioId: number) {
+    // Para beneficios también usamos base64 local
+    try {
+      const dataUrl = await fileToBase64(file)
+      return { data: { path: "local://beneficio", url: dataUrl }, error: null }
+    } catch (error) {
+      return { data: null, error: { message: "Error al procesar la imagen" } }
+    }
+  },
 
-    return { data, error }
+  async deleteFile(_bucket: string, _path: string) {
+    // No-op para localStorage
+    return { data: true, error: null }
   },
 }

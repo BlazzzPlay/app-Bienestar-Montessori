@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import MainLayout from "@/components/main-layout"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 // Importar DevelopmentGuard al inicio del archivo
 import DevelopmentGuard from "@/components/development-guard"
 
@@ -17,7 +17,7 @@ export default function DirectorioPage() {
 
   useEffect(() => {
     const loadPerfiles = async () => {
-      const { data } = await tempDatabase.getAllProfiles()
+      const { data } = await database.getAllProfiles()
       if (data) {
         setPerfiles(data)
       }

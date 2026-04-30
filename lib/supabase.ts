@@ -1,10 +1,3 @@
-import { createClient } from "@supabase/supabase-js"
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
 // Tipos TypeScript para nuestras tablas
 export interface Perfil {
   id: string
@@ -36,6 +29,7 @@ export interface Beneficio {
   fecha_inicio?: string
   fecha_termino?: string
   contador_usos: number
+  beneficiosDisponibles?: string[]
   created_at: string
   updated_at: string
 }
@@ -79,4 +73,11 @@ export interface Sugerencia {
   contenido: string
   fecha_creacion: string
   leido: boolean
+}
+
+export interface AsistenciaEvento {
+  publicacion_id: number
+  usuario_id: string
+  confirmado: boolean
+  created_at: string
 }

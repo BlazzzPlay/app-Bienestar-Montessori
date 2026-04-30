@@ -49,7 +49,7 @@ export function PWAInstallPrompt() {
         <div className="bg-gradient-to-r from-[#005A9C] to-[#0078d4] p-4 flex justify-between items-center">
           <div className="flex items-center">
             <img
-              src="https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png"
+              src="/placeholder.svg"
               alt="Logo Bienestar Montessori"
               className="w-8 h-8 mr-3"
             />

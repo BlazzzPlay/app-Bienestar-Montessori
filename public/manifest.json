@@ -13,14 +13,14 @@
   "categories": ["business", "productivity", "education"],
   "screenshots": [
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Vista principal de Bienestar Montessori"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
@@ -29,49 +29,49 @@
   ],
   "icons": [
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+      "src": "/placeholder.svg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -87,7 +87,7 @@
       "url": "/beneficios",
       "icons": [
         {
-          "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+          "src": "/placeholder.svg",
           "sizes": "96x96",
           "type": "image/png"
         }
@@ -100,7 +100,7 @@
       "url": "/eventos",
       "icons": [
         {
-          "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+          "src": "/placeholder.svg",
           "sizes": "96x96",
           "type": "image/png"
         }
@@ -113,7 +113,7 @@
       "url": "/perfil",
       "icons": [
         {
-          "src": "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+          "src": "/placeholder.svg",
           "sizes": "96x96",
           "type": "image/png"
         }

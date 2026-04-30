@@ -131,7 +131,7 @@ export default function AdminPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
               <p className="text-gray-600 mt-1">Gestiona el programa de Bienestar Montessori</p>
-              <p className="text-sm text-green-600 mt-1">✅ Conectado a Supabase - Datos reales</p>
+              <p className="text-sm text-green-600 mt-1">✅ Modo Local - Datos de ejemplo</p>
             </div>
             <Button onClick={() => router.push("/perfil")} variant="outline" className="border-gray-300">
               Volver al Perfil
@@ -221,11 +221,10 @@ export default function AdminPage() {
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <div>
-                  <h3 className="font-semibold text-green-800">Integración con Supabase Activa</h3>
-                  <p className="text-sm text-green-700">
-                    La aplicación está conectada exitosamente a la base de datos de Supabase. Todos los datos mostrados
-                    son reales y se actualizan en tiempo real.
-                  </p>
+              <h3 className="font-semibold text-green-800">Modo Local Activo</h3>
+              <p className="text-sm text-green-700">
+                La aplicación está funcionando en modo local con datos de ejemplo. Todos los cambios se guardan en el navegador.
+              </p>
                 </div>
               </div>
             </CardContent>

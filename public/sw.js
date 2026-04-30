@@ -7,7 +7,7 @@ const INITIAL_CACHE_URLS = [
   "/login",
   "/offline",
   "/manifest.json",
-  "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+  "/placeholder.svg",
 ]
 
 // Instalación del Service Worker
@@ -47,8 +47,8 @@ self.addEventListener("fetch", (event) => {
   // Solo cachear solicitudes GET
   if (event.request.method !== "GET") return
 
-  // No cachear solicitudes a la API de Supabase
-  if (event.request.url.includes("supabase.co/rest/")) return
+  // No cachear solicitudes a APIs externas
+  if (event.request.url.includes("supabase.co")) return
 
   event.respondWith(
     fetch(event.request)
@@ -101,8 +101,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body,
-    icon: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
-    badge: "https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png",
+    icon: "/placeholder.svg",
+    badge: "/placeholder.svg",
     vibrate: [100, 50, 100],
     data: {
       url: data.url || "/",

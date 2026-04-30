@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import MainLayout from "@/components/main-layout"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 // Importar DevelopmentGuard al inicio del archivo
 import DevelopmentGuard from "@/components/development-guard"
 
@@ -18,7 +18,7 @@ export default function SugerenciasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (sugerencia.trim()) {
-      const { data, error } = await tempDatabase.createSugerencia(sugerencia.trim())
+      const { data, error } = await database.createSugerencia(sugerencia.trim())
 
       if (!error) {
         setEnviado(true)

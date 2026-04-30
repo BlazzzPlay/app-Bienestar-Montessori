@@ -2,23 +2,22 @@
 
 import { useEffect, useState } from "react"
 import type { Perfil } from "@/lib/supabase"
-import { authCustom } from "@/lib/auth-custom"
+import { auth } from "@/lib/auth"
+import { database } from "@/lib/database"
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<Perfil | null>(null)
   const [loading, setLoading] = useState(true)
-  // Añadir estado para manejar errores de autenticación
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Obtener sesión inicial
     const getInitialSession = async () => {
-      const { session } = await authCustom.getSession()
+      const { session } = await auth.getSession()
 
       if (session?.user) {
         setUser(session.user)
-        const { data: profileData } = await authCustom.getProfile(session.user.id)
+        const { data: profileData } = await database.getProfile(session.user.id)
         setProfile(profileData)
       }
 
@@ -27,15 +26,13 @@ export function useAuth() {
 
     getInitialSession()
 
-    // Simular listener de cambios de autenticación
     const handleStorageChange = async (e: StorageEvent) => {
       if (e.key === "bienestar-montessori-session") {
         if (e.newValue) {
           try {
             const session = JSON.parse(e.newValue)
             setUser(session.user)
-
-            const { data: profileData } = await authCustom.getProfile(session.user.id)
+            const { data: profileData } = await database.getProfile(session.user.id)
             setProfile(profileData)
           } catch {
             setUser(null)
@@ -52,12 +49,10 @@ export function useAuth() {
     return () => window.removeEventListener("storage", handleStorageChange)
   }, [])
 
-  // Mejorar la función signIn con mejor manejo de errores:
   const signIn = async (email: string, password: string) => {
     setAuthError(null)
 
     try {
-      // Validaciones del lado cliente
       if (!email || !password) {
         const error = { message: "Email y RUT son obligatorios" }
         setAuthError(error.message)
@@ -70,11 +65,11 @@ export function useAuth() {
         return { data: null, error }
       }
 
-      const { data, error } = await authCustom.signInWithEmailAndRut(email, password)
+      const { data, error } = await auth.signIn(email, password)
 
       if (data && !error) {
         setUser(data.session.user)
-        const { data: profileData, error: profileError } = await authCustom.getProfile(data.session.user.id)
+        const { data: profileData, error: profileError } = await database.getProfile(data.session.user.id)
 
         if (profileError) {
           console.error("Error loading profile:", profileError)
@@ -99,16 +94,11 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      const { error } = await authCustom.signOut()
+      const { error } = await auth.signOut()
       setUser(null)
       setProfile(null)
       setAuthError(null)
-
-      // Limpiar cualquier dato en caché
       localStorage.removeItem("bienestar-montessori-session")
-      localStorage.removeItem("temp-session")
-      localStorage.removeItem("temp-profile")
-
       return { error }
     } catch (error) {
       console.error("Error during sign out:", error)
@@ -120,30 +110,27 @@ export function useAuth() {
     if (!user) {
       return { data: null, error: { message: "No hay usuario autenticado" } }
     }
-
-    const { data, error } = await authCustom.updatePassword(user.id, password)
+    const { data, error } = await auth.updatePassword(password)
     return { data, error }
   }
 
   const refreshProfile = async () => {
     if (user) {
-      const { data: profileData } = await authCustom.getProfile(user.id)
+      const { data: profileData } = await database.getProfile(user.id)
       setProfile(profileData)
     }
   }
 
   const hasFullAccess = () => {
-    // Durante desarrollo, solo el Administrador tiene acceso completo
     return profile?.rol === "Administrador"
   }
 
-  const isInDevelopment = true // Flag temporal para controlar el acceso durante desarrollo
+  const isInDevelopment = true
 
   const validateSession = async () => {
     if (!user) return false
-
     try {
-      const { session, error } = await authCustom.getSession()
+      const { session, error } = await auth.getSession()
       if (error || !session) {
         setUser(null)
         setProfile(null)

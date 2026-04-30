@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import MainLayout from "@/components/main-layout"
 import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 import { Sparkles, Heart, Star } from "lucide-react"
 import { Info } from "lucide-react"
 
@@ -38,7 +38,7 @@ export default function PerfilPage() {
       setProfileError(null)
 
       // Obtener estadísticas del usuario con manejo de errores
-      tempDatabase
+      database
         .getEstadisticasUsuario(user.id)
         .then(({ beneficiosUtilizados, error }) => {
           if (error) {

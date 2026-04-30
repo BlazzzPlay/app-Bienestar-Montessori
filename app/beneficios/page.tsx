@@ -9,7 +9,7 @@ import MainLayout from "@/components/main-layout"
 import { Button } from "@/components/ui/button"
 import FiltrosBeneficiosModal from "@/components/modals/filtros-beneficios-modal"
 import { useRouter } from "next/navigation"
-import { tempDatabase } from "@/lib/temp-database"
+import { database } from "@/lib/database"
 // Importar DevelopmentGuard al inicio del archivo
 import DevelopmentGuard from "@/components/development-guard"
 
@@ -24,7 +24,7 @@ export default function BeneficiosPage() {
 
   useEffect(() => {
     const loadBeneficios = async () => {
-      const { data } = await tempDatabase.getBeneficios()
+      const { data } = await database.getBeneficios()
       if (data) {
         setBeneficios(data)
       }

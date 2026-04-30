@@ -71,7 +71,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <img
-            src="https://gxbsscvcnlnbuqvhjupd.supabase.co/storage/v1/object/public/img//logo2019_transparente.png"
+            src="/placeholder.svg?height=128&width=128"
             alt="Logo Bienestar Montessori"
             className="w-32 h-auto mx-auto mb-6"
           />
