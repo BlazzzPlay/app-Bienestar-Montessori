@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AtSign, Lock, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { AtSign, Lock, Eye, EyeOff, AlertCircle, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -152,6 +152,66 @@ export default function LoginPage() {
             <p className="text-xs text-gray-500">¿Problemas para acceder? Contacta al administrador</p>
           </div>
         </form>
+
+        {/* Datos de ejemplo para probar */}
+        <div className="mt-8 border border-blue-200 rounded-xl bg-blue-50/50 p-4">
+          <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Usuarios de prueba
+          </h3>
+          <div className="space-y-2">
+            {[
+              {
+                email: "admin@colegiomontessori.cl",
+                rut: "99887766-4",
+                rol: "Administrador",
+                color: "bg-red-100 text-red-700 border-red-200",
+              },
+              {
+                email: "patricia.morales@colegiomontessori.cl",
+                rut: "12345678-9",
+                rol: "Presidente",
+                color: "bg-purple-100 text-purple-700 border-purple-200",
+              },
+              {
+                email: "maria.gonzalez@colegiomontessori.cl",
+                rut: "98765432-1",
+                rol: "Beneficiario",
+                color: "bg-green-100 text-green-700 border-green-200",
+              },
+              {
+                email: "juan.perez@colegiomontessori.cl",
+                rut: "11223344-5",
+                rol: "Visualizador",
+                color: "bg-gray-100 text-gray-700 border-gray-200",
+              },
+            ].map((u) => (
+              <button
+                key={u.email}
+                type="button"
+                onClick={() => {
+                  setEmail(u.email)
+                  setPassword(u.rut)
+                  setError("")
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg border hover:shadow-sm transition-all hover:bg-white group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-900 truncate">{u.email}</p>
+                    <p className="text-xs text-gray-500">RUT: {u.rut}</p>
+                  </div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ml-2 ${u.color}`}>
+                    {u.rol}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-blue-600 mt-2 text-center">
+            Hacé click en cualquier usuario para completar los datos automáticamente
+          </p>
+        </div>
       </div>
     </div>
   )
