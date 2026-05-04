@@ -115,6 +115,13 @@ export function useAuth() {
     }
   }
 
+  const signInWithGoogle = async () => {
+    setAuthError(null)
+    const { data, error } = await auth.signInWithGoogle()
+    if (error) setAuthError(error.message)
+    return { data, error }
+  }
+
   const signOut = async () => {
     try {
       const { error } = await auth.signOut()
@@ -173,6 +180,7 @@ export function useAuth() {
     authError,
     signIn,
     verifyOtp,
+    signInWithGoogle,
     signOut,
     updatePassword,
     refreshProfile,

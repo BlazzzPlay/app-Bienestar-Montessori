@@ -43,6 +43,26 @@ export const auth = {
     return { data, error }
   },
 
+  async signInWithGoogle() {
+    const siteUrl =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: siteUrl,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    })
+
+    return { data, error }
+  },
+
   async signOut() {
     const { error } = await supabase.auth.signOut()
     return { error }

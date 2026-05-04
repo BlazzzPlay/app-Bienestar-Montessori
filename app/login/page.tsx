@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
+import GoogleSignInButton from "@/components/google-signin-button"
 
 export default function LoginPage() {
   const [step, setStep] = useState<"email" | "otp">("email")
@@ -137,6 +138,17 @@ export default function LoginPage() {
             >
               {loading ? "Enviando código..." : "Enviar código de acceso"}
             </Button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-gray-50 px-2 text-gray-500">o continúa con</span>
+              </div>
+            </div>
+
+            <GoogleSignInButton />
 
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-600">
