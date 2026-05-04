@@ -9,11 +9,23 @@ import MainLayout from "@/components/main-layout"
 import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfile } from "@/hooks/useProfile"
-import { Sparkles, Heart, Star, Info } from "lucide-react"
+import {
+  Sparkles,
+  Heart,
+  Star,
+  Info,
+  Briefcase,
+  Calendar,
+  Clock,
+  Hash,
+  Gift,
+  Shield,
+  Camera,
+} from "lucide-react"
 
 export default function PerfilPage() {
   const { refreshProfile } = useAuth()
-  const { data, loading, error, refetch } = useProfile()
+  const { data, loading } = useProfile()
   const [showCambiarFoto, setShowCambiarFoto] = useState(false)
   const [clickCount, setClickCount] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
@@ -33,49 +45,38 @@ export default function PerfilPage() {
     })
   }
 
+  // ── Loading ──
   if (loading) {
     return (
       <MainLayout title="Mi Perfil">
-        <div className="p-4 space-y-6 max-w-md mx-auto">
-          <div className="flex flex-col items-center space-y-4">
-            <Skeleton className="h-[120px] w-[120px] rounded-2xl" />
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
+        <div className="p-4 space-y-4 max-w-md mx-auto">
+          <div className="flex flex-col items-center space-y-3 pt-6">
+            <Skeleton className="h-28 w-28 rounded-2xl" />
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-24" />
           </div>
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
           </div>
-          <Skeleton className="h-12 w-full rounded-full" />
+          <Skeleton className="h-32 rounded-xl" />
         </div>
       </MainLayout>
     )
   }
 
-  if (!profile) {
+  // ── Error / no profile ──
+  if (!profile || !validateProfileData(profile)) {
     return (
       <MainLayout title="Mi Perfil">
-        <div className="p-4 text-center">
-          <p className="text-muted-foreground">Error al cargar el perfil</p>
-        </div>
-      </MainLayout>
-    )
-  }
-
-  if (!validateProfileData(profile)) {
-    return (
-      <MainLayout title="Mi Perfil">
-        <div className="p-4 text-center">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <p className="text-red-600 font-medium">Error en los datos del perfil</p>
-            <p className="text-red-500 text-sm mt-2">
+        <div className="p-4 max-w-md mx-auto pt-12 text-center">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-8 space-y-3">
+            <Shield className="h-10 w-10 text-destructive mx-auto" />
+            <p className="text-destructive font-semibold">Error en los datos del perfil</p>
+            <p className="text-sm text-muted-foreground">
               Los datos de tu perfil están incompletos. Contacta al administrador.
             </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
+            <Button onClick={() => window.location.reload()} variant="destructive" className="mt-2">
               Recargar Página
             </Button>
           </div>
@@ -84,160 +85,174 @@ export default function PerfilPage() {
     )
   }
 
+  // ── Profile loaded ──
+  const avatarColors = [
+    "from-primary to-primary/70",
+    "from-secondary to-secondary/60",
+    "from-primary/80 to-secondary/70",
+    "from-secondary/70 to-primary/60",
+  ]
+  const avatarColor = avatarColors[profile.nombre_completo.length % avatarColors.length]
+  const initials = profile.nombre_completo
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+
   return (
     <MainLayout title="Mi Perfil">
-      <div className="p-4">
-        <Card className="w-full max-w-md mx-auto shadow-lg rounded-xl relative overflow-hidden">
-          {/* Easter Egg Animation */}
+      <div className="p-4 space-y-4 max-w-md mx-auto">
+        {/* ── Avatar + Name Card ── */}
+        <Card className="relative overflow-hidden border-0 shadow-lg">
+          {/* Easter Egg */}
           {showEasterEgg && (
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 opacity-90 z-10 flex items-center justify-center">
-              <div className="text-center text-white animate-bounce">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary/80 z-10 flex items-center justify-center animate-in fade-in">
+              <div className="text-center text-primary-foreground animate-bounce">
                 <div className="flex justify-center space-x-2 mb-2">
                   <Sparkles className="h-8 w-8 animate-spin" />
                   <Heart className="h-8 w-8 animate-pulse" />
                   <Star className="h-8 w-8 animate-ping" />
                 </div>
                 <p className="text-xl font-bold">¡Eres increíble!</p>
-                <p className="text-sm">🎉 ¡Has desbloqueado el easter egg! 🎉</p>
+                <p className="text-sm opacity-80">🎉 Easter egg desbloqueado 🎉</p>
               </div>
             </div>
           )}
 
-          <CardContent className="p-6 space-y-6">
-            {/* Avatar y Nombre */}
-            <div className="text-center space-y-4">
-              <div className="mx-auto relative max-w-[120px] max-h-[120px]">
-                <img
-                  src={profile.avatar_url || "/placeholder.svg?height=300&width=300&query=avatar"}
-                  alt={profile.nombre_completo}
-                  className="w-full h-full object-cover rounded-2xl border-4 border-primary shadow-xl"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.src = "/placeholder.svg?height=300&width=300"
-                  }}
-                />
-                {!profile.avatar_url && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl border-4 border-primary shadow-xl flex items-center justify-center">
-                    <span className="text-white text-4xl font-bold">
-                      {profile.nombre_completo
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </span>
+          <CardContent className="p-0">
+            {/* Header gradient */}
+            <div className="bg-gradient-to-br from-primary to-primary/80 h-24" />
+
+            {/* Avatar - overlapping */}
+            <div className="flex justify-center -mt-14">
+              <div className="relative">
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.nombre_completo}
+                    className="h-28 w-28 rounded-2xl object-cover border-4 border-background shadow-xl"
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                ) : (
+                  <div
+                    className={`h-28 w-28 rounded-2xl bg-gradient-to-br ${avatarColor} border-4 border-background shadow-xl flex items-center justify-center`}
+                  >
+                    <span className="text-white text-3xl font-bold">{initials}</span>
                   </div>
                 )}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">{profile.nombre_completo}</h2>
-                <p className="text-sm text-muted-foreground">{profile.cargo}</p>
+
+                {/* Role badge */}
+                <Badge className="absolute -bottom-1 -right-1 bg-secondary text-secondary-foreground border-2 border-background font-semibold text-xs px-2 shadow-md">
+                  {profile.rol}
+                </Badge>
               </div>
             </div>
 
-            {/* Información Personal */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Información Personal
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-border">
-                  <span className="text-sm text-muted-foreground">RUT:</span>
-                  <span className="text-sm font-medium text-foreground">{profile.rut}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-border">
-                  <span className="text-sm text-muted-foreground">Cargo:</span>
-                  <span className="text-sm font-medium text-foreground">{profile.cargo}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-border">
-                  <span className="text-sm text-muted-foreground">Fecha de Ingreso:</span>
-                  <span className="text-sm font-medium text-foreground">
-                    {profile.fecha_ingreso
-                      ? new Date(profile.fecha_ingreso).toLocaleDateString("es-ES", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : "No especificada"}
-                  </span>
-                </div>
-                {profile.jornada_trabajo && (
-                  <div className="flex justify-between items-center py-2 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Jornada:</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {profile.jornada_trabajo}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Name + Info */}
+            <div className="text-center px-6 pt-4 pb-6">
+              <h2 className="text-xl font-bold text-foreground">{profile.nombre_completo}</h2>
+              {profile.cargo && (
+                <p className="text-sm text-muted-foreground mt-0.5">{profile.cargo}</p>
+              )}
 
-            {/* Indicador de Estado de Bienestar */}
-            <div className="flex justify-center">
+              {/* Bienestar badge */}
               <button
                 onClick={handleBienestarClick}
-                className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg ${
+                className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
                   profile.es_bienestar
-                    ? "bg-gradient-to-r from-green-600 to-emerald-400 hover:from-green-700 hover:to-emerald-500 text-white shadow-green-200"
-                    : "bg-gradient-to-r from-destructive to-red-500 hover:from-destructive/90 hover:to-red-600 text-white shadow-red-200"
+                    ? "bg-success/10 text-success border border-success/30"
+                    : "bg-muted text-muted-foreground border border-border"
                 } ${clickCount > 5 ? "animate-pulse" : ""}`}
               >
-                <div className="flex items-center space-x-2">
-                  {profile.es_bienestar ? (
-                    <>
-                      <Heart className="h-4 w-4" />
-                      <span>Pertenece a Bienestar</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>No Pertenece a Bienestar</span>
-                    </>
-                  )}
-                </div>
+                <Heart
+                  className={`h-3.5 w-3.5 ${profile.es_bienestar ? "fill-success text-success" : ""}`}
+                />
+                {profile.es_bienestar ? "Bienestar" : "Funcionario"}
               </button>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Información para usuarios no administradores */}
-            {profile.rol !== "Administrador" && (
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
-                <div className="flex items-start space-x-2">
-                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-primary">
-                    <p className="font-medium">Gestión de Perfil</p>
-                    <p>
-                      Para cambios en tu foto de perfil o información personal, contacta al
-                      administrador del sistema.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* ── Stats ── */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-0 shadow-sm bg-muted/50">
+            <CardContent className="p-4 text-center">
+              <Gift className="h-6 w-6 text-secondary mx-auto mb-1" />
+              <p className="text-2xl font-bold text-foreground">{beneficiosUtilizados}</p>
+              <p className="text-xs text-muted-foreground">Beneficios usados</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm bg-muted/50">
+            <CardContent className="p-4 text-center">
+              <Clock className="h-6 w-6 text-secondary mx-auto mb-1" />
+              <p className="text-2xl font-bold text-foreground">
+                {profile.fecha_ingreso
+                  ? new Date().getFullYear() - new Date(profile.fecha_ingreso).getFullYear()
+                  : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground">Años en el colegio</p>
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Información del rol */}
-            <div className="text-center">
-              <Badge
-                variant="outline"
-                className="px-3 py-1 text-xs font-medium border-primary text-primary bg-primary/5"
-              >
-                {profile.rol}
-              </Badge>
-            </div>
+        {/* ── Personal Info ── */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-5 space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Información Personal
+            </h3>
 
-            {/* Botones de Acción - Solo para Administrador */}
-            {profile.rol === "Administrador" && (
-              <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full border-border hover:bg-accent hover:border-primary transition-colors"
-                  onClick={() => setShowCambiarFoto(true)}
-                >
-                  Cambiar Foto (Solo Admin)
-                </Button>
-              </div>
+            <InfoRow icon={Hash} label="RUT" value={profile.rut || "No registrado"} />
+            <InfoRow icon={Briefcase} label="Cargo" value={profile.cargo || "No registrado"} />
+            <InfoRow
+              icon={Calendar}
+              label="Ingreso"
+              value={
+                profile.fecha_ingreso
+                  ? new Date(profile.fecha_ingreso).toLocaleDateString("es-ES", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "No especificada"
+              }
+            />
+            {profile.jornada_trabajo && (
+              <InfoRow icon={Clock} label="Jornada" value={profile.jornada_trabajo} />
             )}
           </CardContent>
         </Card>
+
+        {/* ── Admin Actions ── */}
+        {profile.rol === "Administrador" && (
+          <Card className="border-0 shadow-sm bg-muted/30">
+            <CardContent className="p-5">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setShowCambiarFoto(true)}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Cambiar Foto de Perfil
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Non-admin info ── */}
+        {profile.rol !== "Administrador" && (
+          <div className="flex items-start gap-2 px-1 py-2">
+            <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Para cambios en tu perfil, contacta al administrador del sistema.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Modales */}
+      {/* ── Modal ── */}
       <CambiarFotoModal
         isOpen={showCambiarFoto}
         onClose={() => setShowCambiarFoto(false)}
@@ -249,10 +264,29 @@ export default function PerfilPage() {
   )
 }
 
+// ── Helpers ──
+
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+}) {
+  return (
+    <div className="flex items-center gap-3 py-1.5">
+      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <span className="text-xs text-muted-foreground w-16 flex-shrink-0">{label}</span>
+      <span className="text-sm font-medium text-foreground truncate">{value}</span>
+    </div>
+  )
+}
+
 function validateProfileData(profile: any): boolean {
   if (!profile) return false
   if (!profile.nombre_completo || profile.nombre_completo.trim() === "") return false
   if (!profile.rol) return false
-  // RUT es opcional (perfiles auto-creados pueden no tenerlo)
   return true
 }
