@@ -13,6 +13,9 @@ export function useAuth() {
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
+    let initialCheckDone = false
+
+    // 1. Get initial session (handles hash fragment redirects)
     const getInitialSession = async () => {
       const { session } = await auth.getSession()
 
@@ -22,11 +25,13 @@ export function useAuth() {
         setProfile(profileData)
       }
 
+      initialCheckDone = true
       setLoading(false)
     }
 
     getInitialSession()
 
+    // 2. Listen for auth state changes (login, logout, hash processing)
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         setUser(session.user)
@@ -36,7 +41,11 @@ export function useAuth() {
         setUser(null)
         setProfile(null)
       }
-      setLoading(false)
+
+      // Only set loading false on first event if initial check didn't complete
+      if (!initialCheckDone) {
+        setLoading(false)
+      }
     })
 
     return () => {
