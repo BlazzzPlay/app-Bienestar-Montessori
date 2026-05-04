@@ -92,14 +92,14 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Barra Superior */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+      <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">{title}</h1>
         <div className="flex items-center space-x-2">
           {/* Saludo personalizado */}
           {profile && (
-            <span className="text-sm text-gray-600 hidden sm:block">
+            <span className="text-sm text-primary-foreground/80 hidden sm:block">
               Hola, {profile.nombre_completo.split(" ")[0]}
             </span>
           )}
@@ -137,7 +137,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
       <main className="flex-1 overflow-y-auto pb-20">{children}</main>
 
       {/* Barra de Navegación Inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-2">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 py-2">
         <div className="flex items-center justify-around">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -147,7 +147,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                 key={tab.id}
                 onClick={() => {
                   setActiveTab(tab.id)
-                  // Agregar navegación
                   if (tab.id === "perfil") router.push("/perfil")
                   if (tab.id === "beneficios") router.push("/beneficios")
                   if (tab.id === "eventos") router.push("/eventos")
@@ -156,10 +155,12 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                   if (tab.id === "admin") router.push("/admin")
                 }}
                 className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
-                  isActive ? "text-primary bg-primary/5" : "text-gray-600 hover:text-gray-900"
+                  isActive
+                    ? "text-secondary bg-secondary/10"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-1 ${isActive ? "text-primary" : ""}`} />
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? "text-secondary" : ""}`} />
                 <span className="text-xs font-medium">{tab.label}</span>
               </button>
             )
@@ -168,7 +169,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
           {/* Botón de Cerrar Sesión */}
           <button
             onClick={() => setShowLogoutDialog(true)}
-            className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-destructive hover:text-destructive/80 hover:bg-destructive/5"
           >
             <LogOut className="h-5 w-5 mb-1" />
             <span className="text-xs font-medium">Salir</span>
@@ -196,7 +197,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Cerrar Sesión
             </AlertDialogAction>

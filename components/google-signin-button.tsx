@@ -20,7 +20,7 @@ export default function GoogleSignInButton() {
       variant="outline"
       onClick={handleGoogleSignIn}
       disabled={loading}
-      className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-100 font-medium rounded-lg transition-colors"
+      className="w-full h-12 bg-white text-foreground border-2 border-border hover:bg-muted font-medium rounded-lg transition-colors"
       size="lg"
     >
       <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
