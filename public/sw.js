@@ -1,8 +1,8 @@
 // Service Worker para Bienestar Montessori PWA
-const CACHE_NAME = "bienestar-montessori-v1"
+const CACHE_NAME = "bienestar-montessori-v2-20260504"
 
-// Recursos para cachear inicialmente
-const INITIAL_CACHE_URLS = ["/", "/login", "/offline", "/manifest.json", "/placeholder.svg"]
+// Recursos para cachear inicialmente (solo assets estáticos, no páginas)
+const INITIAL_CACHE_URLS = ["/offline", "/manifest.json", "/placeholder.svg"]
 
 // Instalación del Service Worker
 self.addEventListener("install", (event) => {
@@ -36,47 +36,32 @@ self.addEventListener("activate", (event) => {
   )
 })
 
-// Estrategia de cache: Network First, fallback to cache
+// Estrategia de cache: Network First para assets, no cachear navegación
 self.addEventListener("fetch", (event) => {
-  // Solo cachear solicitudes GET
   if (event.request.method !== "GET") return
-
-  // No cachear solicitudes a APIs externas
   if (event.request.url.includes("supabase.co")) return
+
+  // No cachear páginas HTML (navegación) — siempre pedir al servidor
+  if (event.request.mode === "navigate") {
+    event.respondWith(fetch(event.request).catch(() => caches.match("/offline")))
+    return
+  }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clonar la respuesta para guardarla en cache
         const responseToCache = response.clone()
-
         caches.open(CACHE_NAME).then((cache) => {
-          // Solo cachear respuestas exitosas
           if (response.status === 200) {
             cache.put(event.request, responseToCache)
           }
         })
-
         return response
       })
       .catch(() => {
-        // Si falla la red, intentar desde cache
         return caches.match(event.request).then((cachedResponse) => {
-          // Si está en cache, devolver respuesta cacheada
-          if (cachedResponse) {
-            return cachedResponse
-          }
-
-          // Si es una solicitud de página, mostrar página offline
-          if (event.request.mode === "navigate") {
-            return caches.match("/offline")
-          }
-
-          // Para otros recursos, devolver error 404
-          return new Response("Not Found", {
-            status: 404,
-            statusText: "Not Found",
-          })
+          if (cachedResponse) return cachedResponse
+          return new Response("Not Found", { status: 404 })
         })
       }),
   )
