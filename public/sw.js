@@ -2,13 +2,7 @@
 const CACHE_NAME = "bienestar-montessori-v1"
 
 // Recursos para cachear inicialmente
-const INITIAL_CACHE_URLS = [
-  "/",
-  "/login",
-  "/offline",
-  "/manifest.json",
-  "/placeholder.svg",
-]
+const INITIAL_CACHE_URLS = ["/", "/login", "/offline", "/manifest.json", "/placeholder.svg"]
 
 // Instalación del Service Worker
 self.addEventListener("install", (event) => {

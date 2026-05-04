@@ -3,7 +3,14 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Info, CheckCircle, XCircle, Clock } from "lucide-react"
 import { useAnalytics } from "@/lib/analytics"
@@ -12,7 +19,10 @@ import { useAnalytics } from "@/lib/analytics"
 function Badge({
   children,
   variant = "default",
-}: { children: React.ReactNode; variant?: "default" | "success" | "warning" | "error" }) {
+}: {
+  children: React.ReactNode
+  variant?: "default" | "success" | "warning" | "error"
+}) {
   const variants = {
     default: "bg-gray-100 text-gray-800",
     success: "bg-green-100 text-green-800",
@@ -21,7 +31,9 @@ function Badge({
   }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]}`}
+    >
       {children}
     </span>
   )
@@ -29,15 +41,20 @@ function Badge({
 
 export default function AnalyticsDiagnostic() {
   const { isAvailable } = useAnalytics()
-  const [analyticsStatus, setAnalyticsStatus] = useState<"checking" | "detected" | "not-detected">("checking")
-  const [speedInsightsStatus, setSpeedInsightsStatus] = useState<"checking" | "detected" | "not-detected">("checking")
+  const [analyticsStatus, setAnalyticsStatus] = useState<"checking" | "detected" | "not-detected">(
+    "checking",
+  )
+  const [speedInsightsStatus, setSpeedInsightsStatus] = useState<
+    "checking" | "detected" | "not-detected"
+  >("checking")
   const [isProduction, setIsProduction] = useState(false)
   const [deploymentInfo, setDeploymentInfo] = useState<any>(null)
 
   useEffect(() => {
     // Verificar entorno
     const hostname = window.location.hostname
-    const isProd = hostname !== "localhost" && !hostname.includes("127.0.0.1") && !hostname.includes("localhost")
+    const isProd =
+      hostname !== "localhost" && !hostname.includes("127.0.0.1") && !hostname.includes("localhost")
     setIsProduction(isProd)
 
     // Obtener información del deployment
@@ -118,7 +135,9 @@ export default function AnalyticsDiagnostic() {
             <Info size={20} />
             Diagnóstico de Vercel Analytics
           </CardTitle>
-          <CardDescription>Estado actual de las herramientas de análisis y rendimiento</CardDescription>
+          <CardDescription>
+            Estado actual de las herramientas de análisis y rendimiento
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Estado de los servicios */}
@@ -166,7 +185,9 @@ export default function AnalyticsDiagnostic() {
               )}
               <div className="flex justify-between">
                 <span>Analytics disponible:</span>
-                <Badge variant={isAvailable ? "success" : "error"}>{isAvailable ? "Sí" : "No"}</Badge>
+                <Badge variant={isAvailable ? "success" : "error"}>
+                  {isAvailable ? "Sí" : "No"}
+                </Badge>
               </div>
             </div>
           </div>
@@ -179,32 +200,41 @@ export default function AnalyticsDiagnostic() {
                 <span>Entorno de Desarrollo</span>
               </div>
               <p className="text-yellow-700 text-sm">
-                Analytics y Speed Insights funcionan mejor en producción. Algunas métricas pueden no estar disponibles
-                en desarrollo.
+                Analytics y Speed Insights funcionan mejor en producción. Algunas métricas pueden no
+                estar disponibles en desarrollo.
               </p>
             </div>
           )}
 
-          {isProduction && (analyticsStatus === "not-detected" || speedInsightsStatus === "not-detected") && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex gap-2 items-center text-blue-800 font-medium mb-2">
-                <Info size={16} />
-                <span>Configuración Requerida</span>
+          {isProduction &&
+            (analyticsStatus === "not-detected" || speedInsightsStatus === "not-detected") && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex gap-2 items-center text-blue-800 font-medium mb-2">
+                  <Info size={16} />
+                  <span>Configuración Requerida</span>
+                </div>
+                <p className="text-blue-700 text-sm mb-2">
+                  Para activar Analytics, ve al dashboard de Vercel y habilita estas funciones para
+                  tu proyecto.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open("https://vercel.com/dashboard", "_blank")}
+                >
+                  Ir a Vercel Dashboard
+                </Button>
               </div>
-              <p className="text-blue-700 text-sm mb-2">
-                Para activar Analytics, ve al dashboard de Vercel y habilita estas funciones para tu proyecto.
-              </p>
-              <Button size="sm" variant="outline" onClick={() => window.open("https://vercel.com/dashboard", "_blank")}>
-                Ir a Vercel Dashboard
-              </Button>
-            </div>
-          )}
+            )}
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={() => window.location.reload()}>
             Verificar de nuevo
           </Button>
-          <Button variant="default" onClick={() => window.open("https://vercel.com/docs/analytics", "_blank")}>
+          <Button
+            variant="default"
+            onClick={() => window.open("https://vercel.com/docs/analytics", "_blank")}
+          >
             Ver Documentación
           </Button>
         </CardFooter>

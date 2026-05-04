@@ -145,11 +145,12 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Lock className="h-5 w-5 text-[#005A9C]" />
+            <Lock className="h-5 w-5 text-primary" />
             <span>Cambiar RUT</span>
           </DialogTitle>
           <DialogDescription>
-            Establece un nuevo RUT para tu cuenta. Asegúrate de que sea correcto y fácil de recordar.
+            Establece un nuevo RUT para tu cuenta. Asegúrate de que sea correcto y fácil de
+            recordar.
           </DialogDescription>
         </DialogHeader>
 
@@ -218,7 +219,11 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-[#005A9C] hover:bg-[#004080] text-white" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={isLoading}
+            >
               {isLoading ? "Cambiando..." : "Cambiar RUT"}
             </Button>
           </DialogFooter>

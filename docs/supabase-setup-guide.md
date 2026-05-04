@@ -59,20 +59,24 @@ console.log(report)
 ### 5. Solución de Problemas Comunes
 
 #### Error: "Bucket not found"
+
 - Verifica que el bucket existe en Storage
 - Confirma que el nombre es exactamente `avatars`
 
 #### Error: "Permission denied"
+
 - Revisa las políticas de acceso
 - Asegúrate de que el usuario esté autenticado
 
 #### Error: "Network timeout"
+
 - Verifica la conexión a internet
 - Confirma que la URL del proyecto es correcta
 
 ### 6. Fallback Local
 
 Si persisten los problemas, el sistema incluye un fallback automático que:
+
 - Almacena imágenes temporalmente en el navegador
 - Permite continuar usando la aplicación
 - Se activa automáticamente cuando falla Supabase
@@ -80,36 +84,43 @@ Si persisten los problemas, el sistema incluye un fallback automático que:
 ### 7. Comandos de Verificación
 
 \`\`\`bash
+
 # Verificar conectividad
+
 curl -I https://tu-proyecto.supabase.co/storage/v1/bucket/avatars
 
 # Probar subida (requiere token)
+
 curl -X POST https://tu-proyecto.supabase.co/storage/v1/object/avatars/test.jpg \
-  -H "Authorization: Bearer tu-token" \
-  -F file=@test.jpg
+ -H "Authorization: Bearer tu-token" \
+ -F file=@test.jpg
 \`\`\`
 
 ## Características del Sistema Mejorado
 
 ### ✅ Diagnóstico Automático
+
 - Verifica conexión a Supabase
 - Valida existencia del bucket
 - Prueba permisos de lectura/escritura
 - Genera reporte detallado
 
 ### ✅ Manejo Robusto de Errores
+
 - Reintentos automáticos (hasta 3 intentos)
 - Fallback a almacenamiento local
 - Mensajes de error informativos
 - Opciones de recuperación
 
 ### ✅ Validaciones Exhaustivas
+
 - Formato de archivo
 - Tamaño máximo
 - Dimensiones mínimas
 - Integridad de imagen
 
 ### ✅ Procesamiento Inteligente
+
 - Redimensionamiento automático
 - Compresión optimizada
 - Conversión a JPEG
@@ -118,7 +129,8 @@ curl -X POST https://tu-proyecto.supabase.co/storage/v1/object/avatars/test.jpg 
 ## Contacto de Soporte
 
 Si los problemas persisten después de seguir esta guía:
+
 1. Ejecuta el diagnóstico automático
 2. Copia el reporte generado
 3. Contacta al administrador del sistema
-\`\`\`
+   \`\`\`

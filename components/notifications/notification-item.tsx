@@ -29,7 +29,7 @@ export default function NotificationItem({
   const [isHovered, setIsHovered] = useState(false)
   const router = useRouter()
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | undefined) => {
     switch (priority) {
       case "urgent":
         return "bg-red-500"
@@ -173,7 +173,12 @@ export default function NotificationItem({
                     {notification.title}
                   </h4>
 
-                  <p className={cn("text-sm text-gray-600 mt-1", compact ? "line-clamp-1" : "line-clamp-2")}>
+                  <p
+                    className={cn(
+                      "text-sm text-gray-600 mt-1",
+                      compact ? "line-clamp-1" : "line-clamp-2",
+                    )}
+                  >
                     {notification.message}
                   </p>
 
@@ -204,7 +209,9 @@ export default function NotificationItem({
                         Alta
                       </Badge>
                     )}
-                    {notification.status === "unread" && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+                    {notification.status === "unread" && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
                   </div>
 
                   <div className="flex items-center text-xs text-gray-500">
@@ -217,7 +224,12 @@ export default function NotificationItem({
           </div>
 
           {/* Action buttons */}
-          <div className={cn("flex flex-col space-y-1 opacity-0 transition-opacity", isHovered && "opacity-100")}>
+          <div
+            className={cn(
+              "flex flex-col space-y-1 opacity-0 transition-opacity",
+              isHovered && "opacity-100",
+            )}
+          >
             {notification.status === "unread" && (
               <Button
                 variant="ghost"
@@ -246,7 +258,10 @@ export default function NotificationItem({
         {notification.expiresAt && (
           <div className="mt-2 text-xs text-gray-500 flex items-center">
             <Clock className="h-3 w-3 mr-1" />
-            Expira: {notification.expiresAt.toLocaleDateString("es-ES")}
+            Expira:{" "}
+            {typeof notification.expiresAt === "string"
+              ? new Date(notification.expiresAt).toLocaleDateString("es-ES")
+              : notification.expiresAt.toLocaleDateString("es-ES")}
           </div>
         )}
       </CardContent>

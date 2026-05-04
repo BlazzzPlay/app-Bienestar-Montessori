@@ -212,7 +212,7 @@ export default function CambiarFotoModal({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Camera className="h-5 w-5 text-[#005A9C]" />
+            <Camera className="h-5 w-5 text-primary" />
             <span>Cambiar Foto de Perfil</span>
           </DialogTitle>
         </DialogHeader>
@@ -222,7 +222,10 @@ export default function CambiarFotoModal({
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={previewUrl || currentAvatar || "/placeholder.svg"} alt={userName} />
+                <AvatarImage
+                  src={previewUrl || currentAvatar || "/placeholder.svg"}
+                  alt={userName}
+                />
                 <AvatarFallback className="bg-gray-200 text-gray-600 text-xl">
                   {userName
                     .split(" ")
@@ -253,11 +256,14 @@ export default function CambiarFotoModal({
                   </Badge>
                   {validationResult.fileInfo.dimensions && (
                     <Badge variant="outline" className="text-xs">
-                      {validationResult.fileInfo.dimensions.width}x{validationResult.fileInfo.dimensions.height}px
+                      {validationResult.fileInfo.dimensions.width}x
+                      {validationResult.fileInfo.dimensions.height}px
                     </Badge>
                   )}
                 </div>
-                {selectedFile && <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>}
+                {selectedFile && (
+                  <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                )}
               </div>
             )}
 
@@ -304,7 +310,7 @@ export default function CambiarFotoModal({
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full border-dashed border-2 border-gray-300 hover:border-[#005A9C] hover:bg-blue-50 h-12"
+              className="w-full border-dashed border-2 border-gray-300 hover:border-primary hover:bg-primary/5 h-12"
               disabled={isLoading}
             >
               <Upload className="h-4 w-4 mr-2" />
@@ -315,7 +321,9 @@ export default function CambiarFotoModal({
               <div className="flex items-start space-x-2">
                 <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-700 space-y-1">
-                  <p><strong>Almacenamiento local</strong></p>
+                  <p>
+                    <strong>Almacenamiento local</strong>
+                  </p>
                   <p>Formatos: JPG, PNG, WEBP | Máximo: 2MB</p>
                   <p>La imagen se guarda en tu navegador.</p>
                 </div>
@@ -338,7 +346,7 @@ export default function CambiarFotoModal({
           <Button
             onClick={handleUpload}
             disabled={!selectedFile || isLoading || !validationResult?.isValid}
-            className="bg-[#005A9C] hover:bg-[#004080] text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {isLoading ? "Subiendo..." : "Guardar Foto"}
           </Button>

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { useDevMode } from "@/hooks/useDevMode"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,7 +14,8 @@ interface DevelopmentGuardProps {
 }
 
 export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
-  const { hasFullAccess, isInDevelopment, loading, isAuthenticated } = useAuth()
+  const { hasFullAccess, loading, isAuthenticated } = useAuth()
+  const isInDevelopment = useDevMode()
   const router = useRouter()
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005A9C]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -53,23 +55,27 @@ export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
           <div className="space-y-3">
             <h2 className="text-xl font-bold text-gray-900">Sección en Desarrollo</h2>
             <p className="text-gray-600 leading-relaxed">
-              Esta funcionalidad está temporalmente restringida mientras realizamos mejoras en el sistema.
+              Esta funcionalidad está temporalmente restringida mientras realizamos mejoras en el
+              sistema.
             </p>
             <p className="text-sm text-gray-500">
-              Por el momento, puedes acceder a tu perfil personal. Pronto habilitaremos todas las funcionalidades.
+              Por el momento, puedes acceder a tu perfil personal. Pronto habilitaremos todas las
+              funcionalidades.
             </p>
           </div>
 
           <div className="space-y-3">
             <Button
               onClick={() => router.push("/perfil")}
-              className="w-full bg-[#005A9C] hover:bg-[#004080] text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Ir a Mi Perfil
             </Button>
 
-            <p className="text-xs text-gray-400">¿Necesitas ayuda? Contacta al administrador del sistema.</p>
+            <p className="text-xs text-gray-400">
+              ¿Necesitas ayuda? Contacta al administrador del sistema.
+            </p>
           </div>
         </CardContent>
       </Card>

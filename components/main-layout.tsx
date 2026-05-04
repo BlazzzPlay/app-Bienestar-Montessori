@@ -3,11 +3,23 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Bell, UserRound, Gift, CalendarDays, Users, Inbox, LogOut, Settings } from "lucide-react"
+import {
+  Bell,
+  UserRound,
+  Gift,
+  CalendarDays,
+  Users,
+  Inbox,
+  LogOut,
+  Settings,
+  Sun,
+  Moon,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
+import { useTheme } from "next-themes"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +46,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { signOut, profile, hasFullAccess, isInDevelopment } = useAuth()
+  const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
     if (pathname.includes("/perfil")) setActiveTab("perfil")
@@ -86,8 +99,20 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         <div className="flex items-center space-x-2">
           {/* Saludo personalizado */}
           {profile && (
-            <span className="text-sm text-gray-600 hidden sm:block">Hola, {profile.nombre_completo.split(" ")[0]}</span>
+            <span className="text-sm text-gray-600 hidden sm:block">
+              Hola, {profile.nombre_completo.split(" ")[0]}
+            </span>
           )}
+
+          {/* Botón de tema */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2"
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          >
+            {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
 
           {/* Botón de notificaciones - solo visible para administradores */}
           {profile && profile.rol === "Administrador" && (
@@ -131,10 +156,10 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                   if (tab.id === "admin") router.push("/admin")
                 }}
                 className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
-                  isActive ? "text-[#005A9C] bg-blue-50" : "text-gray-600 hover:text-gray-900"
+                  isActive ? "text-primary bg-primary/5" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-1 ${isActive ? "text-[#005A9C]" : ""}`} />
+                <Icon className={`h-5 w-5 mb-1 ${isActive ? "text-primary" : ""}`} />
                 <span className="text-xs font-medium">{tab.label}</span>
               </button>
             )
@@ -152,7 +177,10 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
       </nav>
 
       {/* Notification Center */}
-      <NotificationCenter isOpen={showNotificationCenter} onClose={() => setShowNotificationCenter(false)} />
+      <NotificationCenter
+        isOpen={showNotificationCenter}
+        onClose={() => setShowNotificationCenter(false)}
+      />
 
       {/* Dialog de confirmación para cerrar sesión */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
@@ -160,8 +188,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a iniciar sesión para acceder a la
-              aplicación.
+              ¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a iniciar sesión
+              para acceder a la aplicación.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,22 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AtSign, Lock, Eye, EyeOff, AlertCircle, User } from "lucide-react"
+import { AtSign, AlertCircle, Mail, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [step, setStep] = useState<"email" | "otp">("email")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [otp, setOtp] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
 
-  const { signIn, isAuthenticated } = useAuth()
+  const { signIn, verifyOtp, isAuthenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -29,16 +31,11 @@ export default function LoginPage() {
     return email.endsWith("@colegiomontessori.cl")
   }
 
-  const validateRUT = (rut: string) => {
-    const cleanRUT = rut.replace(/[.-]/g, "")
-    if (cleanRUT.length < 8 || cleanRUT.length > 9) return false
-    return true
-  }
-
-  const handleSubmit = async (e) => {
+  const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setMessage("")
 
     if (!validateEmail(email)) {
       setError("Debes usar tu correo institucional (@colegiomontessori.cl)")
@@ -46,21 +43,42 @@ export default function LoginPage() {
       return
     }
 
-    if (!validateRUT(password)) {
-      setError("El RUT debe tener un formato válido (ej: 12345678-9)")
+    try {
+      const result = await signIn(email)
+      if (result.error) {
+        setError(result.error.message || "Error al enviar el código")
+      } else {
+        setMessage("Te enviamos un código de verificación a tu correo")
+        setStep("otp")
+      }
+    } catch (err) {
+      setError("Error al enviar el código")
+    }
+
+    setLoading(false)
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setMessage("")
+
+    if (otp.length < 6) {
+      setError("Ingresa el código de 6 dígitos")
       setLoading(false)
       return
     }
 
     try {
-      const result = await signIn(email, password)
+      const result = await verifyOtp(email, otp)
       if (result.error) {
-        setError(result.error.message || "Error al iniciar sesión")
+        setError(result.error.message || "Código incorrecto")
       } else {
         router.push("/perfil")
       }
     } catch (err) {
-      setError("Error al iniciar sesión")
+      setError("Error al verificar el código")
     }
 
     setLoading(false)
@@ -79,139 +97,178 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">Accede a tu portal de beneficios</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        {step === "email" && (
+          <form onSubmit={handleSendOtp} className="space-y-6">
+            {(error || message) && (
+              <Alert variant={error ? "destructive" : "default"}>
+                {error ? <AlertCircle className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+                <AlertDescription>{error || message}</AlertDescription>
+              </Alert>
+            )}
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Correo Institucional
-              </Label>
-              <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (error) setError("")
-                  }}
-                  placeholder="usuario@colegiomontessori.cl"
-                  className="pl-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
-                  required
-                />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Correo Institucional
+                </Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (error) setError("")
+                    }}
+                    placeholder="usuario@colegiomontessori.cl"
+                    className="pl-10 h-12 border-gray-300 rounded-lg focus:border-primary focus:ring-primary"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                RUT (Contraseña)
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value)
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+              size="lg"
+            >
+              {loading ? "Enviando código..." : "Enviar código de acceso"}
+            </Button>
+
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-600">
+                Te enviaremos un código de verificación a tu correo
+              </p>
+              <p className="text-xs text-gray-500">
+                ¿Problemas para acceder? Contacta al administrador
+              </p>
+            </div>
+          </form>
+        )}
+
+        {step === "otp" && (
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            {(error || message) && (
+              <Alert variant={error ? "destructive" : "default"}>
+                {error ? <AlertCircle className="h-4 w-4" /> : <KeyRound className="h-4 w-4" />}
+                <AlertDescription>{error || message}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="otp" className="text-sm font-medium text-gray-700">
+                  Código de verificación
+                </Label>
+                <InputOTP
+                  id="otp"
+                  data-testid="otp-input"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(value) => {
+                    setOtp(value)
                     if (error) setError("")
                   }}
-                  placeholder="Ingresa tu RUT (ej: 12345678-9)"
-                  className="pl-10 pr-10 h-12 border-gray-300 rounded-lg focus:border-[#005A9C] focus:ring-[#005A9C]"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <p className="text-xs text-gray-500">
+                  Ingresa el código de 6 dígitos que enviamos a {email}
+                </p>
               </div>
             </div>
-          </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 bg-[#005A9C] hover:bg-[#004080] text-white font-medium rounded-lg transition-colors"
-            size="lg"
-          >
-            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
-          </Button>
+            <Button
+              type="submit"
+              disabled={loading || otp.length < 6}
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+              size="lg"
+            >
+              {loading ? "Verificando..." : "Verificar e ingresar"}
+            </Button>
 
-          <div className="text-center space-y-2">
-            <p className="text-sm text-gray-600">Tu contraseña es tu RUT con guión (ej: 12345678-9)</p>
-            <p className="text-xs text-gray-500">¿Problemas para acceder? Contacta al administrador</p>
-          </div>
-        </form>
-
-        {/* Datos de ejemplo para probar */}
-        <div className="mt-8 border border-blue-200 rounded-xl bg-blue-50/50 p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Usuarios de prueba
-          </h3>
-          <div className="space-y-2">
-            {[
-              {
-                email: "admin@colegiomontessori.cl",
-                rut: "99887766-4",
-                rol: "Administrador",
-                color: "bg-red-100 text-red-700 border-red-200",
-              },
-              {
-                email: "patricia.morales@colegiomontessori.cl",
-                rut: "12345678-9",
-                rol: "Presidente",
-                color: "bg-purple-100 text-purple-700 border-purple-200",
-              },
-              {
-                email: "maria.gonzalez@colegiomontessori.cl",
-                rut: "98765432-1",
-                rol: "Beneficiario",
-                color: "bg-green-100 text-green-700 border-green-200",
-              },
-              {
-                email: "juan.perez@colegiomontessori.cl",
-                rut: "11223344-5",
-                rol: "Visualizador",
-                color: "bg-gray-100 text-gray-700 border-gray-200",
-              },
-            ].map((u) => (
+            <div className="text-center">
               <button
-                key={u.email}
                 type="button"
                 onClick={() => {
-                  setEmail(u.email)
-                  setPassword(u.rut)
+                  setStep("email")
+                  setOtp("")
                   setError("")
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg border hover:shadow-sm transition-all hover:bg-white group"
+                className="text-sm text-primary hover:underline"
               >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-gray-900 truncate">{u.email}</p>
-                    <p className="text-xs text-gray-500">RUT: {u.rut}</p>
-                  </div>
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ml-2 ${u.color}`}>
-                    {u.rol}
-                  </span>
-                </div>
+                Volver al correo
               </button>
-            ))}
+            </div>
+          </form>
+        )}
+
+        {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
+          <div className="mt-8 border border-blue-200 rounded-xl bg-blue-50/50 p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Usuarios de prueba
+            </h3>
+            <div className="space-y-2">
+              {[
+                {
+                  email: "admin@colegiomontessori.cl",
+                  rol: "Administrador",
+                  color: "bg-red-100 text-red-700 border-red-200",
+                },
+                {
+                  email: "patricia.morales@colegiomontessori.cl",
+                  rol: "Presidente",
+                  color: "bg-purple-100 text-purple-700 border-purple-200",
+                },
+                {
+                  email: "maria.gonzalez@colegiomontessori.cl",
+                  rol: "Beneficiario",
+                  color: "bg-green-100 text-green-700 border-green-200",
+                },
+                {
+                  email: "juan.perez@colegiomontessori.cl",
+                  rol: "Visualizador",
+                  color: "bg-gray-100 text-gray-700 border-gray-200",
+                },
+              ].map((u) => (
+                <button
+                  key={u.email}
+                  type="button"
+                  onClick={() => {
+                    setEmail(u.email)
+                    setError("")
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg border hover:shadow-sm transition-all hover:bg-white group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-900 truncate">{u.email}</p>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ml-2 ${u.color}`}
+                    >
+                      {u.rol}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-blue-600 mt-2 text-center">
+              Hacé click en cualquier usuario para completar el correo automáticamente
+            </p>
           </div>
-          <p className="text-[10px] text-blue-600 mt-2 text-center">
-            Hacé click en cualquier usuario para completar los datos automáticamente
-          </p>
-        </div>
+        )}
       </div>
     </div>
   )

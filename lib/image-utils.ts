@@ -19,7 +19,10 @@ export interface ProcessedImage {
 /**
  * Convierte y optimiza una imagen con compresión agresiva
  */
-export async function processImage(file: File, options: ImageProcessingOptions = {}): Promise<ProcessedImage> {
+export async function processImage(
+  file: File,
+  options: ImageProcessingOptions = {},
+): Promise<ProcessedImage> {
   const { maxWidth = 300, maxHeight = 300, quality = 0.65, format = "jpeg" } = options
 
   return new Promise((resolve, reject) => {
@@ -28,7 +31,12 @@ export async function processImage(file: File, options: ImageProcessingOptions =
     img.onload = () => {
       try {
         // Calcular nuevas dimensiones manteniendo proporción
-        const { width: newWidth, height: newHeight } = calculateDimensions(img.width, img.height, maxWidth, maxHeight)
+        const { width: newWidth, height: newHeight } = calculateDimensions(
+          img.width,
+          img.height,
+          maxWidth,
+          maxHeight,
+        )
 
         // Crear canvas para redimensionar
         const canvas = document.createElement("canvas")

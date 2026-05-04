@@ -45,37 +45,37 @@ export function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none">
-      <div className="bg-white rounded-xl shadow-xl border border-blue-100 overflow-hidden max-w-md mx-auto pointer-events-auto">
-        <div className="bg-gradient-to-r from-[#005A9C] to-[#0078d4] p-4 flex justify-between items-center">
+      <div className="bg-white rounded-xl shadow-xl border border-primary/10 overflow-hidden max-w-md mx-auto pointer-events-auto">
+        <div className="bg-gradient-to-r from-primary to-blue-500 p-4 flex justify-between items-center">
           <div className="flex items-center">
-            <img
-              src="/placeholder.svg"
-              alt="Logo Bienestar Montessori"
-              className="w-8 h-8 mr-3"
-            />
+            <img src="/placeholder.svg" alt="Logo Bienestar Montessori" className="w-8 h-8 mr-3" />
             <h3 className="text-white font-medium">Instalar aplicación</h3>
           </div>
-          <button onClick={handleDismiss} className="text-white/80 hover:text-white" aria-label="Cerrar">
+          <button
+            onClick={handleDismiss}
+            className="text-white/80 hover:text-white"
+            aria-label="Cerrar"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="p-4">
           <div className="flex items-start mb-4">
-            <div className="bg-blue-50 p-2 rounded-full mr-3">
-              <Smartphone className="h-5 w-5 text-[#005A9C]" />
+            <div className="bg-primary/5 p-2 rounded-full mr-3">
+              <Smartphone className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-gray-700">
-                Instala Bienestar Montessori en tu dispositivo para acceder más rápido y usar la aplicación sin
-                conexión.
+                Instala Bienestar Montessori en tu dispositivo para acceder más rápido y usar la
+                aplicación sin conexión.
               </p>
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-3 mb-4 border border-blue-100">
+          <div className="bg-primary/5 rounded-lg p-3 mb-4 border border-primary/10">
             <h4 className="text-sm font-medium text-gray-700 flex items-center mb-2">
-              <Info className="h-4 w-4 mr-1 text-[#005A9C]" />
+              <Info className="h-4 w-4 mr-1 text-primary" />
               Beneficios
             </h4>
             <ul className="space-y-2">
@@ -95,12 +95,15 @@ export function PWAInstallPrompt() {
           </div>
 
           <div className="flex justify-end space-x-3">
-            <button onClick={handleDismiss} className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800">
+            <button
+              onClick={handleDismiss}
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+            >
               Ahora no
             </button>
             <button
               onClick={handleInstall}
-              className="px-4 py-1.5 bg-[#005A9C] hover:bg-[#004a80] text-white text-sm rounded-md flex items-center"
+              className="px-4 py-1.5 bg-primary hover:bg-primary/80 text-white text-sm rounded-md flex items-center"
             >
               <Download className="h-4 w-4 mr-1" />
               Instalar

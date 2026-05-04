@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import type { Perfil } from "@/lib/supabase"
 import { auth } from "@/lib/auth"
 import { database } from "@/lib/database"
+import { supabase } from "@/lib/supabaseClient"
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null)
@@ -26,35 +27,29 @@ export function useAuth() {
 
     getInitialSession()
 
-    const handleStorageChange = async (e: StorageEvent) => {
-      if (e.key === "bienestar-montessori-session") {
-        if (e.newValue) {
-          try {
-            const session = JSON.parse(e.newValue)
-            setUser(session.user)
-            const { data: profileData } = await database.getProfile(session.user.id)
-            setProfile(profileData)
-          } catch {
-            setUser(null)
-            setProfile(null)
-          }
-        } else {
-          setUser(null)
-          setProfile(null)
-        }
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        const { data: profileData } = await database.getProfile(session.user.id)
+        setProfile(profileData)
+      } else {
+        setUser(null)
+        setProfile(null)
       }
-    }
+      setLoading(false)
+    })
 
-    window.addEventListener("storage", handleStorageChange)
-    return () => window.removeEventListener("storage", handleStorageChange)
+    return () => {
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string) => {
     setAuthError(null)
 
     try {
-      if (!email || !password) {
-        const error = { message: "Email y RUT son obligatorios" }
+      if (!email) {
+        const error = { message: "Email es obligatorio" }
         setAuthError(error.message)
         return { data: null, error }
       }
@@ -65,21 +60,9 @@ export function useAuth() {
         return { data: null, error }
       }
 
-      const { data, error } = await auth.signIn(email, password)
+      const { data, error } = await auth.signIn(email)
 
-      if (data && !error) {
-        setUser(data.session.user)
-        const { data: profileData, error: profileError } = await database.getProfile(data.session.user.id)
-
-        if (profileError) {
-          console.error("Error loading profile:", profileError)
-          setAuthError("Error al cargar el perfil del usuario")
-          return { data: null, error: { message: "Error al cargar el perfil del usuario" } }
-        }
-
-        setProfile(profileData)
-        setAuthError(null)
-      } else if (error) {
+      if (error) {
         setAuthError(error.message)
       }
 
@@ -92,13 +75,43 @@ export function useAuth() {
     }
   }
 
+  const verifyOtp = async (email: string, token: string) => {
+    setAuthError(null)
+
+    try {
+      const { data, error } = await auth.verifyOtp(email, token)
+
+      if (data && !error) {
+        setUser(data.user)
+        if (data.user?.id) {
+          const { data: profileData, error: profileError } = await database.getProfile(data.user.id)
+          if (profileError) {
+            console.error("Error loading profile:", profileError)
+            setAuthError("Error al cargar el perfil del usuario")
+            return { data: null, error: { message: "Error al cargar el perfil del usuario" } }
+          }
+          setProfile(profileData)
+        }
+        setAuthError(null)
+      } else if (error) {
+        setAuthError(error.message)
+      }
+
+      return { data, error }
+    } catch (error) {
+      console.error("Unexpected error during OTP verification:", error)
+      const errorMessage = "Error al verificar el código"
+      setAuthError(errorMessage)
+      return { data: null, error: { message: errorMessage } }
+    }
+  }
+
   const signOut = async () => {
     try {
       const { error } = await auth.signOut()
       setUser(null)
       setProfile(null)
       setAuthError(null)
-      localStorage.removeItem("bienestar-montessori-session")
       return { error }
     } catch (error) {
       console.error("Error during sign out:", error)
@@ -106,12 +119,11 @@ export function useAuth() {
     }
   }
 
-  const updatePassword = async (password: string) => {
-    if (!user) {
-      return { data: null, error: { message: "No hay usuario autenticado" } }
+  const updatePassword = async (_password: string) => {
+    return {
+      data: null,
+      error: { message: "Cambio de contraseña no disponible con autenticación OTP" },
     }
-    const { data, error } = await auth.updatePassword(password)
-    return { data, error }
   }
 
   const refreshProfile = async () => {
@@ -125,7 +137,7 @@ export function useAuth() {
     return profile?.rol === "Administrador"
   }
 
-  const isInDevelopment = true
+  const isInDevelopment = process.env.NEXT_PUBLIC_DEV_MODE === "true"
 
   const validateSession = async () => {
     if (!user) return false
@@ -151,6 +163,7 @@ export function useAuth() {
     loading,
     authError,
     signIn,
+    verifyOtp,
     signOut,
     updatePassword,
     refreshProfile,

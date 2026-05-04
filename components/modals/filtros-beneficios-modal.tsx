@@ -66,7 +66,7 @@ export default function FiltrosBeneficiosModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Filter className="h-5 w-5 text-[#005A9C]" />
+            <Filter className="h-5 w-5 text-primary" />
             <span>Filtrar Beneficios</span>
           </DialogTitle>
           <DialogDescription>
@@ -78,7 +78,8 @@ export default function FiltrosBeneficiosModal({
           {/* Contador de filtros seleccionados */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              {filtrosTemp.length} {filtrosTemp.length === 1 ? "categoría seleccionada" : "categorías seleccionadas"}
+              {filtrosTemp.length}{" "}
+              {filtrosTemp.length === 1 ? "categoría seleccionada" : "categorías seleccionadas"}
             </span>
             {filtrosTemp.length > 0 && (
               <Button
@@ -86,7 +87,7 @@ export default function FiltrosBeneficiosModal({
                 variant="ghost"
                 size="sm"
                 onClick={handleLimpiar}
-                className="text-[#005A9C] hover:text-[#004080]"
+                className="text-primary hover:text-primary/80"
               >
                 Limpiar todo
               </Button>
@@ -102,15 +103,20 @@ export default function FiltrosBeneficiosModal({
                   key={categoria.id}
                   onClick={() => toggleFiltro(categoria.id)}
                   className={`relative flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
-                    isSelected ? "border-[#005A9C] bg-blue-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
                   }`}
                 >
-                  <Badge variant="secondary" className={`text-xs px-2 py-1 rounded-full ${categoria.color}`}>
+                  <Badge
+                    variant="secondary"
+                    className={`text-xs px-2 py-1 rounded-full ${categoria.color}`}
+                  >
                     {categoria.label}
                   </Badge>
                   {isSelected && (
                     <div className="absolute top-1 right-1">
-                      <div className="bg-[#005A9C] rounded-full p-0.5">
+                      <div className="bg-primary rounded-full p-0.5">
                         <Check className="h-3 w-3 text-white" />
                       </div>
                     </div>
@@ -147,7 +153,10 @@ export default function FiltrosBeneficiosModal({
           <Button type="button" variant="outline" onClick={handleCancelar}>
             Cancelar
           </Button>
-          <Button onClick={handleAplicar} className="bg-[#005A9C] hover:bg-[#004080] text-white">
+          <Button
+            onClick={handleAplicar}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
             Aplicar Filtros
           </Button>
         </DialogFooter>

@@ -4,7 +4,13 @@ import { useState } from "react"
 import { Bell, Check, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNotificationSystem } from "@/hooks/useNotificationSystem"
@@ -65,7 +71,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] flex flex-col">
           <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005A9C]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         </DialogContent>
       </Dialog>
@@ -78,10 +84,10 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Bell className="h-5 w-5 text-[#005A9C]" />
+              <Bell className="h-5 w-5 text-primary" />
               <span>Centro de Notificaciones</span>
               {unreadCount > 0 && (
-                <Badge variant="secondary" className="bg-[#005A9C] text-white text-xs">
+                <Badge variant="secondary" className="bg-primary text-primary-foreground text-xs">
                   {unreadCount}
                 </Badge>
               )}
@@ -93,7 +99,7 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                   variant="ghost"
                   size="sm"
                   onClick={handleMarkAllAsRead}
-                  className="text-[#005A9C] hover:text-[#004080]"
+                  className="text-primary hover:text-primary/80"
                 >
                   <Check className="h-4 w-4 mr-1" />
                   Marcar todas como leídas
@@ -101,7 +107,12 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
               )}
 
               {notifications.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-red-600 hover:text-red-800">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="text-red-600 hover:text-red-800"
+                >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Limpiar todo
                 </Button>
@@ -159,7 +170,9 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                     <div className="text-center py-8">
                       <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">No tienes notificaciones</p>
-                      <p className="text-sm text-gray-400 mt-1">Te notificaremos cuando haya nuevas actualizaciones.</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Te notificaremos cuando haya nuevas actualizaciones.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -183,7 +196,9 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                     <div className="text-center py-8">
                       <Check className="h-12 w-12 text-green-300 mx-auto mb-4" />
                       <p className="text-gray-500">¡Todo al día!</p>
-                      <p className="text-sm text-gray-400 mt-1">No tienes notificaciones sin leer.</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        No tienes notificaciones sin leer.
+                      </p>
                     </div>
                   )}
                 </div>

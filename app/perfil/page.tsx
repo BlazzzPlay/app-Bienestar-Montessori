@@ -1,64 +1,25 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import MainLayout from "@/components/main-layout"
 import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
-import { database } from "@/lib/database"
-import { Sparkles, Heart, Star } from "lucide-react"
-import { Info } from "lucide-react"
+import { useProfile } from "@/hooks/useProfile"
+import { Sparkles, Heart, Star, Info } from "lucide-react"
 
 export default function PerfilPage() {
-  const { user, profile, loading, refreshProfile } = useAuth()
+  const { refreshProfile } = useAuth()
+  const { data, loading, error, refetch } = useProfile()
   const [showCambiarFoto, setShowCambiarFoto] = useState(false)
-  const [beneficiosUtilizados, setBeneficiosUtilizados] = useState(0)
   const [clickCount, setClickCount] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
 
-  // Añadir estados para manejo de errores
-  const [profileError, setProfileError] = useState<string | null>(null)
-  const [statsLoading, setStatsLoading] = useState(false)
-
-  // Función para validar datos del perfil
-  const validateProfileData = (profile: any): boolean => {
-    if (!profile) return false
-    if (!profile.nombre_completo || profile.nombre_completo.trim() === "") return false
-    if (!profile.rut || profile.rut.trim() === "") return false
-    if (!profile.rol) return false
-    return true
-  }
-
-  // Mejorar el useEffect para cargar estadísticas:
-  useEffect(() => {
-    if (user) {
-      setStatsLoading(true)
-      setProfileError(null)
-
-      // Obtener estadísticas del usuario con manejo de errores
-      database
-        .getEstadisticasUsuario(user.id)
-        .then(({ beneficiosUtilizados, error }) => {
-          if (error) {
-            console.error("Error loading user stats:", error)
-            setProfileError("Error al cargar estadísticas")
-            setBeneficiosUtilizados(0)
-          } else {
-            setBeneficiosUtilizados(beneficiosUtilizados)
-          }
-        })
-        .catch((error) => {
-          console.error("Unexpected error loading stats:", error)
-          setProfileError("Error inesperado al cargar estadísticas")
-          setBeneficiosUtilizados(0)
-        })
-        .finally(() => {
-          setStatsLoading(false)
-        })
-    }
-  }, [user])
+  const profile = data?.profile
+  const beneficiosUtilizados = data?.beneficiosUtilizados ?? 0
 
   const handleBienestarClick = () => {
     setClickCount((prev) => {
@@ -66,7 +27,7 @@ export default function PerfilPage() {
       if (newCount === 10) {
         setShowEasterEgg(true)
         setTimeout(() => setShowEasterEgg(false), 3000)
-        return 0 // Reset counter
+        return 0
       }
       return newCount
     })
@@ -75,8 +36,18 @@ export default function PerfilPage() {
   if (loading) {
     return (
       <MainLayout title="Mi Perfil">
-        <div className="p-4 flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005A9C]"></div>
+        <div className="p-4 space-y-6 max-w-md mx-auto">
+          <div className="flex flex-col items-center space-y-4">
+            <Skeleton className="h-[120px] w-[120px] rounded-2xl" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+          <Skeleton className="h-12 w-full rounded-full" />
         </div>
       </MainLayout>
     )
@@ -86,7 +57,7 @@ export default function PerfilPage() {
     return (
       <MainLayout title="Mi Perfil">
         <div className="p-4 text-center">
-          <p className="text-gray-500">Error al cargar el perfil</p>
+          <p className="text-muted-foreground">Error al cargar el perfil</p>
         </div>
       </MainLayout>
     )
@@ -101,7 +72,10 @@ export default function PerfilPage() {
             <p className="text-red-500 text-sm mt-2">
               Los datos de tu perfil están incompletos. Contacta al administrador.
             </p>
-            <Button onClick={() => window.location.reload()} className="mt-4 bg-red-600 hover:bg-red-700 text-white">
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Recargar Página
             </Button>
           </div>
@@ -132,19 +106,19 @@ export default function PerfilPage() {
           <CardContent className="p-6 space-y-6">
             {/* Avatar y Nombre */}
             <div className="text-center space-y-4">
-              <div className="w-[300px] h-[300px] mx-auto relative">
+              <div className="mx-auto relative max-w-[120px] max-h-[120px]">
                 <img
                   src={profile.avatar_url || "/placeholder.svg?height=300&width=300&query=avatar"}
                   alt={profile.nombre_completo}
-                  className="w-full h-full object-cover rounded-2xl border-4 border-[#005A9C] shadow-xl"
+                  className="w-full h-full object-cover rounded-2xl border-4 border-primary shadow-xl"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
                     target.src = "/placeholder.svg?height=300&width=300"
                   }}
                 />
                 {!profile.avatar_url && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#005A9C] to-[#004080] rounded-2xl border-4 border-[#005A9C] shadow-xl flex items-center justify-center">
-                    <span className="text-white text-6xl font-bold">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-2xl border-4 border-primary shadow-xl flex items-center justify-center">
+                    <span className="text-white text-4xl font-bold">
                       {profile.nombre_completo
                         .split(" ")
                         .map((n) => n[0])
@@ -154,26 +128,28 @@ export default function PerfilPage() {
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">{profile.nombre_completo}</h2>
-                <p className="text-sm text-gray-600">{profile.cargo}</p>
+                <h2 className="text-xl font-bold text-foreground">{profile.nombre_completo}</h2>
+                <p className="text-sm text-muted-foreground">{profile.cargo}</p>
               </div>
             </div>
 
             {/* Información Personal */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Información Personal</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Información Personal
+              </h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">RUT:</span>
-                  <span className="text-sm font-medium text-gray-900">{profile.rut}</span>
+                <div className="flex justify-between items-center py-2 border-b border-border">
+                  <span className="text-sm text-muted-foreground">RUT:</span>
+                  <span className="text-sm font-medium text-foreground">{profile.rut}</span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Cargo:</span>
-                  <span className="text-sm font-medium text-gray-900">{profile.cargo}</span>
+                <div className="flex justify-between items-center py-2 border-b border-border">
+                  <span className="text-sm text-muted-foreground">Cargo:</span>
+                  <span className="text-sm font-medium text-foreground">{profile.cargo}</span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Fecha de Ingreso:</span>
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="flex justify-between items-center py-2 border-b border-border">
+                  <span className="text-sm text-muted-foreground">Fecha de Ingreso:</span>
+                  <span className="text-sm font-medium text-foreground">
                     {profile.fecha_ingreso
                       ? new Date(profile.fecha_ingreso).toLocaleDateString("es-ES", {
                           year: "numeric",
@@ -184,36 +160,15 @@ export default function PerfilPage() {
                   </span>
                 </div>
                 {profile.jornada_trabajo && (
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Jornada:</span>
-                    <span className="text-sm font-medium text-gray-900">{profile.jornada_trabajo}</span>
+                  <div className="flex justify-between items-center py-2 border-b border-border">
+                    <span className="text-sm text-muted-foreground">Jornada:</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {profile.jornada_trabajo}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Estadísticas - Temporalmente oculto hasta implementación completa
-            <div className="text-center space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Estadísticas</h3>
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                {statsLoading ? (
-                  <div className="flex justify-center items-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#005A9C]"></div>
-                  </div>
-                ) : profileError ? (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-500 mb-1">--</div>
-                    <div className="text-xs text-red-600">{profileError}</div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-4xl font-bold text-[#005A9C] mb-1">{beneficiosUtilizados}</div>
-                    <div className="text-sm text-gray-600">Beneficios Utilizados</div>
-                  </>
-                )}
-              </div>
-            </div>
-            */}
 
             {/* Indicador de Estado de Bienestar */}
             <div className="flex justify-center">
@@ -221,8 +176,8 @@ export default function PerfilPage() {
                 onClick={handleBienestarClick}
                 className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg ${
                   profile.es_bienestar
-                    ? "bg-gradient-to-r from-[#28a745] to-[#20c997] hover:from-[#218838] hover:to-[#1ea085] text-white shadow-green-200"
-                    : "bg-gradient-to-r from-[#dc3545] to-[#e74c3c] hover:from-[#c82333] hover:to-[#dc2626] text-white shadow-red-200"
+                    ? "bg-gradient-to-r from-green-600 to-emerald-400 hover:from-green-700 hover:to-emerald-500 text-white shadow-green-200"
+                    : "bg-gradient-to-r from-destructive to-red-500 hover:from-destructive/90 hover:to-red-600 text-white shadow-red-200"
                 } ${clickCount > 5 ? "animate-pulse" : ""}`}
               >
                 <div className="flex items-center space-x-2">
@@ -242,13 +197,14 @@ export default function PerfilPage() {
 
             {/* Información para usuarios no administradores */}
             {profile.rol !== "Administrador" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
                 <div className="flex items-start space-x-2">
-                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-700">
+                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-primary">
                     <p className="font-medium">Gestión de Perfil</p>
                     <p>
-                      Para cambios en tu foto de perfil o información personal, contacta al administrador del sistema.
+                      Para cambios en tu foto de perfil o información personal, contacta al
+                      administrador del sistema.
                     </p>
                   </div>
                 </div>
@@ -259,7 +215,7 @@ export default function PerfilPage() {
             <div className="text-center">
               <Badge
                 variant="outline"
-                className="px-3 py-1 text-xs font-medium border-[#005A9C] text-[#005A9C] bg-blue-50"
+                className="px-3 py-1 text-xs font-medium border-primary text-primary bg-primary/5"
               >
                 {profile.rol}
               </Badge>
@@ -270,7 +226,7 @@ export default function PerfilPage() {
               <div className="space-y-3">
                 <Button
                   variant="outline"
-                  className="w-full border-gray-300 hover:bg-gray-50 hover:border-[#005A9C] transition-colors"
+                  className="w-full border-border hover:bg-accent hover:border-primary transition-colors"
                   onClick={() => setShowCambiarFoto(true)}
                 >
                   Cambiar Foto (Solo Admin)
@@ -291,4 +247,12 @@ export default function PerfilPage() {
       />
     </MainLayout>
   )
+}
+
+function validateProfileData(profile: any): boolean {
+  if (!profile) return false
+  if (!profile.nombre_completo || profile.nombre_completo.trim() === "") return false
+  if (!profile.rut || profile.rut.trim() === "") return false
+  if (!profile.rol) return false
+  return true
 }

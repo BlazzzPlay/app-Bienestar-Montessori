@@ -1,30 +1,46 @@
 # Bienestar Montessori
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Aplicación de gestión de beneficios para funcionarios del Colegio Montessori.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/fabian-mendozas-projects-a8090e54/v0-bienestar-montessori)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/IE1gdBvxhyz)
+## Stack
 
-## Overview
+- **Framework**: [Next.js](https://nextjs.org/) 15 (App Router)
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS
+- **Componentes UI**: shadcn/ui + Radix UI
+- **Testing**: Vitest + React Testing Library
+- **Linting**: ESLint (Next.js + TypeScript)
+- **Formato**: Prettier
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Requisitos
 
-## Deployment
+- Node.js 18+
+- pnpm (recomendado) o npm
 
-Your project is live at:
+## Instalación
 
-**[https://vercel.com/fabian-mendozas-projects-a8090e54/v0-bienestar-montessori](https://vercel.com/fabian-mendozas-projects-a8090e54/v0-bienestar-montessori)**
+```bash
+pnpm install
+```
 
-## Build your app
+## Scripts
 
-Continue building your app on:
+```bash
+pnpm dev          # Servidor de desarrollo
+pnpm build        # Build de producción
+pnpm start        # Servidor de producción
+pnpm lint         # ESLint
+pnpm test         # Vitest
+```
 
-**[https://v0.dev/chat/projects/IE1gdBvxhyz](https://v0.dev/chat/projects/IE1gdBvxhyz)**
+## Variables de entorno
 
-## How It Works
+Copiar `.env.example` a `.env.local` y ajustar los valores.
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+```bash
+cp .env.example .env.local
+```
+
+## Licencia
+
+Privado — Colegio Montessori.

@@ -132,10 +132,21 @@ export function useNotificationSystem() {
     }
   }
 
-  const addCustomNotification = async (type: any, title: string, message: string, options?: any) => {
+  const addCustomNotification = async (
+    type: any,
+    title: string,
+    message: string,
+    options?: any,
+  ) => {
     if (!profile?.rol || profile?.rol !== "Administrador") return
     if (user?.id) {
-      const result = await notificationSystem.addNotification(user.id, type, title, message, options)
+      const result = await notificationSystem.addNotification(
+        user.id,
+        type,
+        title,
+        message,
+        options,
+      )
       await loadNotifications()
       return result
     }

@@ -85,7 +85,7 @@ export default function NotificationToast({
     }
   }, [autoHide, duration])
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string | undefined) => {
     switch (priority) {
       case "urgent":
         return "border-l-red-500 bg-red-50"

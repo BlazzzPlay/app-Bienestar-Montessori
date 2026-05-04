@@ -40,7 +40,7 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005A9C] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando autenticación...</p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
               setAuthError(null)
               router.push("/login")
             }}
-            className="bg-[#005A9C] hover:bg-[#004080] text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Ir al Login
           </Button>

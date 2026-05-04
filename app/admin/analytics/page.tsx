@@ -5,7 +5,11 @@ import { Info, BarChart3, Zap, Users, TrendingUp } from "lucide-react"
 
 // Componente Alert simple
 function Alert({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`p-4 border rounded-md ${className || "border-blue-200 bg-blue-50"}`}>{children}</div>
+  return (
+    <div className={`p-4 border rounded-md ${className || "border-blue-200 bg-blue-50"}`}>
+      {children}
+    </div>
+  )
 }
 
 export default function AnalyticsPage() {
@@ -24,8 +28,8 @@ export default function AnalyticsPage() {
             <h3 className="font-medium text-blue-800">Sistema de Analytics Integrado</h3>
           </div>
           <p className="text-blue-700 text-sm">
-            Vercel Analytics y Speed Insights están configurados para recopilar datos anónimos sobre el uso y
-            rendimiento de la aplicación.
+            Vercel Analytics y Speed Insights están configurados para recopilar datos anónimos sobre
+            el uso y rendimiento de la aplicación.
           </p>
         </Alert>
 
@@ -42,7 +46,9 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-600">Visitantes únicos, sesiones y comportamiento de usuarios</p>
+              <p className="text-xs text-gray-600">
+                Visitantes únicos, sesiones y comportamiento de usuarios
+              </p>
             </CardContent>
           </Card>
 
@@ -66,7 +72,9 @@ export default function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-600">Core Web Vitals, tiempos de carga y optimizaciones</p>
+              <p className="text-xs text-gray-600">
+                Core Web Vitals, tiempos de carga y optimizaciones
+              </p>
             </CardContent>
           </Card>
 

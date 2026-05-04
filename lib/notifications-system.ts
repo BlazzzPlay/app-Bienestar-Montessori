@@ -7,6 +7,14 @@ export interface DynamicNotification {
   createdAt: string
   readAt?: string
   metadata?: Record<string, any>
+  // UI display fields (optional, used by notification-item/toast)
+  priority?: string
+  color?: string
+  icon?: string
+  actionUrl?: string
+  actionText?: string
+  expiresAt?: Date | string
+  created_at?: string
 }
 
 const STORAGE_KEY = "bm_notifications"
@@ -98,7 +106,9 @@ export const notificationSystem = {
 
   async markAllAsRead(userId: string) {
     const notifications = getStored(userId).map((n) =>
-      n.status === "unread" ? { ...n, status: "read" as const, readAt: new Date().toISOString() } : n
+      n.status === "unread"
+        ? { ...n, status: "read" as const, readAt: new Date().toISOString() }
+        : n,
     )
     setStored(userId, notifications)
     emit(userId)
@@ -114,7 +124,7 @@ export const notificationSystem = {
     type: string,
     title: string,
     message: string,
-    options?: any
+    options?: any,
   ): Promise<DynamicNotification> {
     const notifications = getStored(userId)
     const notification: DynamicNotification = {

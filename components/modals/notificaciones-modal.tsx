@@ -5,7 +5,13 @@ import { Bell, Check, Clock, Gift, CalendarDays, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Notificacion {
@@ -43,7 +49,8 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
         id: 2,
         tipo: "beneficio",
         titulo: "Nuevo beneficio disponible",
-        descripcion: "Se ha agregado un nuevo convenio con Farmacia Cruz Verde con 15% de descuento.",
+        descripcion:
+          "Se ha agregado un nuevo convenio con Farmacia Cruz Verde con 15% de descuento.",
         fecha: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 día atrás
         leida: false,
         enlace: "/beneficios/2",
@@ -52,7 +59,8 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
         id: 3,
         tipo: "comentario",
         titulo: "Tu comentario fue aprobado",
-        descripcion: "Tu comentario en el beneficio de Restaurante El Buen Sabor ha sido aprobado y publicado.",
+        descripcion:
+          "Tu comentario en el beneficio de Restaurante El Buen Sabor ha sido aprobado y publicado.",
         fecha: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 días atrás
         leida: true,
         enlace: "/beneficios/1",
@@ -61,7 +69,8 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
         id: 4,
         tipo: "sistema",
         titulo: "Actualización del sistema",
-        descripcion: "El sistema de beneficios se actualizará el próximo lunes de 8:00 a 12:00 hrs.",
+        descripcion:
+          "El sistema de beneficios se actualizará el próximo lunes de 8:00 a 12:00 hrs.",
         fecha: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 días atrás
         leida: true,
       },
@@ -163,7 +172,7 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
     return (
       <Card
         className={`cursor-pointer transition-all hover:shadow-sm ${
-          !notificacion.leida ? "border-l-4 border-l-[#005A9C] bg-blue-50" : "hover:bg-gray-50"
+          !notificacion.leida ? "border-l-4 border-l-primary bg-primary/5" : "hover:bg-gray-50"
         }`}
         onClick={() => handleClickNotificacion(notificacion)}
       >
@@ -174,12 +183,16 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
-                <h4 className={`text-sm font-medium text-gray-900 ${!notificacion.leida ? "font-semibold" : ""}`}>
+                <h4
+                  className={`text-sm font-medium text-gray-900 ${!notificacion.leida ? "font-semibold" : ""}`}
+                >
                   {notificacion.titulo}
                 </h4>
                 <div className="flex items-center space-x-2 ml-2">
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{formatearFecha(notificacion.fecha)}</span>
-                  {!notificacion.leida && <div className="w-2 h-2 bg-[#005A9C] rounded-full"></div>}
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    {formatearFecha(notificacion.fecha)}
+                  </span>
+                  {!notificacion.leida && <div className="w-2 h-2 bg-primary rounded-full"></div>}
                 </div>
               </div>
               <p className="text-sm text-gray-600 mt-1 line-clamp-2">{notificacion.descripcion}</p>
@@ -195,10 +208,10 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
       <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Bell className="h-5 w-5 text-[#005A9C]" />
+            <Bell className="h-5 w-5 text-primary" />
             <span>Notificaciones</span>
             {notificacionesNoLeidas.length > 0 && (
-              <Badge variant="secondary" className="bg-[#005A9C] text-white text-xs">
+              <Badge variant="secondary" className="bg-primary text-primary-foreground text-xs">
                 {notificacionesNoLeidas.length}
               </Badge>
             )}
@@ -210,7 +223,7 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
 
         {loading ? (
           <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005A9C]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
           <div className="flex-1 overflow-hidden">
@@ -221,7 +234,7 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
                   variant="ghost"
                   size="sm"
                   onClick={marcarTodasComoLeidas}
-                  className="text-[#005A9C] hover:text-[#004080]"
+                  className="text-primary hover:text-primary/80"
                 >
                   <Check className="h-4 w-4 mr-1" />
                   Marcar todas como leídas
@@ -235,7 +248,7 @@ export default function NotificacionesModal({ isOpen, onClose }: NotificacionesM
                 {notificacionesNoLeidas.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-gray-900 flex items-center">
-                      <Clock className="h-4 w-4 mr-2 text-[#005A9C]" />
+                      <Clock className="h-4 w-4 mr-2 text-primary" />
                       Nuevas ({notificacionesNoLeidas.length})
                     </h3>
                     {notificacionesNoLeidas.map((notificacion) => (
