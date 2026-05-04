@@ -2,12 +2,12 @@
 
 import type React from "react"
 import { useState } from "react"
+import { Lightbulb, Send, Shield, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import MainLayout from "@/components/main-layout"
 import { useSugerencias } from "@/hooks/useSugerencias"
-import DevelopmentGuard from "@/components/development-guard"
 
 export default function SugerenciasPage() {
   const [sugerencia, setSugerencia] = useState("")
@@ -17,96 +17,99 @@ export default function SugerenciasPage() {
     e.preventDefault()
     if (sugerencia.trim()) {
       await submit(sugerencia)
-      if (!error) {
-        setSugerencia("")
-      }
+      if (!error) setSugerencia("")
     }
   }
 
   return (
-    <DevelopmentGuard>
-      <MainLayout title="Buzón de Sugerencias">
-        <div className="p-4">
-          <div className="max-w-2xl mx-auto space-y-6">
-            {/* Texto de bienvenida */}
-            <Card className="bg-primary/5 border-primary/20">
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-3">
-                  Tu voz es importante para nosotros
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Este buzón de sugerencias es completamente <strong>anónimo</strong>. Puedes
-                  compartir tus ideas, quejas o sugerencias para mejorar nuestro programa de
-                  bienestar. Tu identidad no será revelada y todas las sugerencias serán revisadas
-                  por el comité de Bienestar.
+    <MainLayout title="Sugerencias">
+      <div className="p-4 max-w-xl mx-auto space-y-5">
+        {/* ── Header card ── */}
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 to-secondary/5">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                <Lightbulb className="h-5 w-5 text-secondary" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-foreground">Buzón de Sugerencias</h2>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Completamente anónimo
                 </p>
-              </CardContent>
-            </Card>
-
-            {/* Formulario */}
-            <Card>
-              <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="sugerencia"
-                      className="text-sm font-medium text-muted-foreground"
-                    >
-                      Tu sugerencia
-                    </label>
-                    <Textarea
-                      id="sugerencia"
-                      value={sugerencia}
-                      onChange={(e) => setSugerencia(e.target.value)}
-                      placeholder="Escribe aquí tu idea, queja o sugerencia para mejorar nuestro bienestar..."
-                      className="min-h-[200px] resize-none border-border focus:border-primary focus:ring-primary"
-                      maxLength={1000}
-                    />
-                    <div className="text-right text-xs text-muted-foreground">
-                      {sugerencia.length}/1000 caracteres
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={!sugerencia.trim() || loading || enviado}
-                    className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
-                    size="lg"
-                  >
-                    {loading
-                      ? "Enviando..."
-                      : enviado
-                        ? "¡Sugerencia Enviada!"
-                        : "Enviar Sugerencia Anónima"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {/* Mensaje de confirmación */}
-            {enviado && (
-              <Card className="bg-green-50 border-green-200">
-                <CardContent className="p-4">
-                  <p className="text-center text-green-800 font-medium">
-                    ¡Gracias por tu sugerencia! Ha sido enviada de forma anónima y será revisada por
-                    el comité de Bienestar.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Información adicional */}
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                ¿Tienes alguna consulta específica que requiere respuesta?
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Contacta directamente al comité de Bienestar a través del directorio.
-              </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </MainLayout>
-    </DevelopmentGuard>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Compartí tus ideas, quejas o sugerencias para mejorar nuestro programa de bienestar.
+              Todas las sugerencias son revisadas por el comité.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* ── Form ── */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Textarea
+                  id="sugerencia"
+                  value={sugerencia}
+                  onChange={(e) => setSugerencia(e.target.value)}
+                  placeholder="Escribe aquí tu idea, queja o sugerencia..."
+                  className="min-h-[160px] resize-none text-sm"
+                  maxLength={1000}
+                />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{sugerencia.length}/1000</span>
+                  {sugerencia.length > 900 && (
+                    <span className="text-warning font-medium">
+                      {1000 - sugerencia.length} caracteres restantes
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={!sugerencia.trim() || loading || enviado}
+                className="w-full h-12 rounded-xl font-semibold text-base"
+                variant={enviado ? "outline" : "default"}
+                size="lg"
+              >
+                {loading ? (
+                  "Enviando..."
+                ) : enviado ? (
+                  <>
+                    <Heart className="h-5 w-5 mr-2 text-success" />
+                    ¡Sugerencia Enviada!
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-5 w-5 mr-2" />
+                    Enviar Sugerencia Anónima
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* ── Confirmation ── */}
+        {enviado && (
+          <Card className="border-0 shadow-sm bg-success/5">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-success font-medium">
+                ¡Gracias! Tu sugerencia fue enviada de forma anónima y será revisada por el comité.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Footer ── */}
+        <p className="text-center text-xs text-muted-foreground px-4">
+          ¿Necesitás una respuesta? Contactá al comité de Bienestar desde el directorio.
+        </p>
+      </div>
+    </MainLayout>
   )
 }
