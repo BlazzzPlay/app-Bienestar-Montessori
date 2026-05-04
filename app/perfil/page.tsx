@@ -252,7 +252,7 @@ export default function PerfilPage() {
 function validateProfileData(profile: any): boolean {
   if (!profile) return false
   if (!profile.nombre_completo || profile.nombre_completo.trim() === "") return false
-  if (!profile.rut || profile.rut.trim() === "") return false
   if (!profile.rol) return false
+  // RUT es opcional (perfiles auto-creados pueden no tenerlo)
   return true
 }
