@@ -93,8 +93,19 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:static focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
+      >
+        Saltar al contenido principal
+      </a>
+
       {/* Barra Superior */}
-      <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between">
+      <header
+        aria-label="Barra superior"
+        className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between"
+      >
         <h1 className="text-lg font-semibold">{title}</h1>
         <div className="flex items-center space-x-2">
           {/* Saludo personalizado */}
@@ -109,6 +120,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
             variant="ghost"
             size="sm"
             className="p-2"
+            aria-label="Cambiar tema"
+            type="button"
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           >
             {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -117,7 +130,16 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
           {/* Botón de notificaciones - solo visible para administradores */}
           {profile && profile.rol === "Administrador" && (
             <div className="relative">
-              <Button variant="ghost" size="sm" className="p-2" onClick={handleNotificacionesClick}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2"
+                type="button"
+                aria-label={
+                  unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"
+                }
+                onClick={handleNotificacionesClick}
+              >
                 <Bell className="h-5 w-5 text-gray-600" />
               </Button>
               {unreadCount > 0 && (
@@ -134,10 +156,15 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
       </header>
 
       {/* Área de Contenido Principal */}
-      <main className="flex-1 overflow-y-auto pb-20">{children}</main>
+      <main id="main-content" className="flex-1 overflow-y-auto pb-20">
+        {children}
+      </main>
 
       {/* Barra de Navegación Inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 py-2">
+      <nav
+        aria-label="Navegación principal"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 py-2"
+      >
         <div className="flex items-center justify-around">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -145,6 +172,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
             return (
               <button
                 key={tab.id}
+                type="button"
+                aria-current={isActive ? "page" : undefined}
                 onClick={() => {
                   setActiveTab(tab.id)
                   if (tab.id === "perfil") router.push("/perfil")
@@ -168,6 +197,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
 
           {/* Botón de Cerrar Sesión */}
           <button
+            type="button"
+            aria-label="Cerrar sesión"
             onClick={() => setShowLogoutDialog(true)}
             className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-destructive hover:text-destructive/80 hover:bg-destructive/5"
           >

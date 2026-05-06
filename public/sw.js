@@ -2,7 +2,7 @@
 const CACHE_NAME = "bienestar-montessori-v2-20260504"
 
 // Recursos para cachear inicialmente (solo assets estáticos, no páginas)
-const INITIAL_CACHE_URLS = ["/offline", "/manifest.json", "/placeholder.svg"]
+const INITIAL_CACHE_URLS = ["/offline", "/manifest.json", "/icons/icon-192x192.png"]
 
 // Instalación del Service Worker
 self.addEventListener("install", (event) => {
@@ -80,8 +80,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body,
-    icon: "/placeholder.svg",
-    badge: "/placeholder.svg",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/icon-96x96.png",
     vibrate: [100, 50, 100],
     data: {
       url: data.url || "/",

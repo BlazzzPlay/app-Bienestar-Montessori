@@ -80,8 +80,27 @@ describe("database", () => {
     })
   })
 
+  describe("getUsoBeneficio", () => {
+    it("returns uso row when found", async () => {
+      const uso = { id: 1, beneficio_id: 1, usuario_id: "u1", fecha_uso: "2024-01-01" }
+      mockFrom.mockReturnValue(createChain({ data: uso, error: null }))
+
+      const { data, error } = await database.getUsoBeneficio(1, "u1")
+      expect(data).toEqual(uso)
+      expect(error).toBeNull()
+    })
+
+    it("returns null when no uso found", async () => {
+      mockFrom.mockReturnValue(createChain({ data: null, error: { message: "No rows found" } }))
+
+      const { data, error } = await database.getUsoBeneficio(1, "u1")
+      expect(data).toBeNull()
+      expect(error).toBeDefined()
+    })
+  })
+
   describe("registrarUsoBeneficio", () => {
-    it("calls RPC and returns updated beneficio", async () => {
+    it("calls RPC with usuarioId and returns updated beneficio", async () => {
       const beneficio = { id: 1, contador_usos: 5 }
       mockRpc.mockResolvedValue({ data: null, error: null })
       const chain = createChain({ data: beneficio, error: null })
@@ -90,7 +109,10 @@ describe("database", () => {
       const { data, error } = await database.registrarUsoBeneficio(1, "u1")
       expect(data).toEqual(beneficio)
       expect(error).toBeNull()
-      expect(mockRpc).toHaveBeenCalledWith("incrementar_uso_beneficio", { p_id: 1 })
+      expect(mockRpc).toHaveBeenCalledWith("incrementar_uso_beneficio", {
+        p_id: 1,
+        p_usuario_id: "u1",
+      })
     })
   })
 

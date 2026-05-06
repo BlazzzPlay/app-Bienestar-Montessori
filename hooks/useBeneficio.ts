@@ -18,6 +18,7 @@ export function useBeneficio(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasUsed, setHasUsed] = useState(false)
+  const [isCheckingUsage, setIsCheckingUsage] = useState(false)
   const [usageLoading, setUsageLoading] = useState(false)
   const [commentLoading, setCommentLoading] = useState(false)
 
@@ -43,6 +44,19 @@ export function useBeneficio(
   useEffect(() => {
     if (id) fetch()
   }, [id, fetch])
+
+  useEffect(() => {
+    async function checkUsage() {
+      if (!userId || !id) return
+      setIsCheckingUsage(true)
+      const { data, error } = await database.getUsoBeneficio(id, userId)
+      if (!error) {
+        setHasUsed(!!data)
+      }
+      setIsCheckingUsage(false)
+    }
+    checkUsage()
+  }, [id, userId])
 
   const registerUse = useCallback(async () => {
     if (!userId) throw new Error("Usuario no autenticado")
@@ -99,6 +113,7 @@ export function useBeneficio(
     error,
     refetch: fetch,
     hasUsed,
+    isCheckingUsage,
     usageLoading,
     commentLoading,
     registerUse,

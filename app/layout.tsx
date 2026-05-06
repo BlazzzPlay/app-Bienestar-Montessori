@@ -1,4 +1,4 @@
-import React from "react"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -9,10 +9,29 @@ import { AnalyticsProviders } from "@/lib/analytics"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata = {
-  title: "Bienestar Montessori",
+const appUrl = process.env.NEXT_PUBLIC_APP_URL
+
+export const metadata: Metadata = {
+  metadataBase: appUrl ? new URL(appUrl) : undefined,
+  title: {
+    default: "Bienestar Montessori",
+    template: "%s | Bienestar Montessori",
+  },
   description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
   manifest: "/manifest.json",
+  openGraph: {
+    type: "website",
+    title: "Bienestar Montessori",
+    description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bienestar Montessori",
+    description: "Aplicación de gestión de beneficios para funcionarios del Colegio Montessori",
+  },
+  alternates: {
+    canonical: "/",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

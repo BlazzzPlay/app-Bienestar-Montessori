@@ -14,13 +14,13 @@ export default function Icon() {
     <div
       style={{
         fontSize: 24,
-        background: "linear-gradient(135deg, hsl(207, 100%, 30%) 0%, hsl(207, 100%, 25%) 100%)",
+        background: "#0B2545",
         width: "100%",
         height: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "white",
+        color: "#DDA11E",
         borderRadius: "20%",
       }}
     >

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#0B2545"/>
+  <rect x="0" y="0" width="1280" height="720" fill="url(#bg)"/>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B2545"/>
+      <stop offset="100%" stop-color="#08203a"/>
+    </linearGradient>
+  </defs>
+  <rect x="540" y="160" width="200" height="200" fill="#DDA11E" rx="40" ry="40"/>
+  <text x="640" y="300" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="100" font-weight="700" fill="#0B2545" text-anchor="middle" dominant-baseline="middle">BM</text>
+  <text x="640" y="460" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="600" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">Bienestar Montessori</text>
+  <text x="640" y="540" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="32" font-weight="400" fill="#DDA11E" text-anchor="middle" dominant-baseline="middle">Gestión de beneficios para funcionarios</text>
+</svg>

@@ -7,6 +7,7 @@ import type {
   ComentarioPublicacion,
   Sugerencia,
   AsistenciaEvento,
+  UsoBeneficio,
 } from "./supabase"
 
 export const database = {
@@ -72,9 +73,20 @@ export const database = {
     return { data: data as Beneficio | null, error }
   },
 
-  async registrarUsoBeneficio(beneficioId: number, _usuarioId: string) {
+  async getUsoBeneficio(beneficioId: number, usuarioId: string) {
+    const { data, error } = await supabase
+      .from("usos_beneficio")
+      .select("*")
+      .eq("beneficio_id", beneficioId)
+      .eq("usuario_id", usuarioId)
+      .single()
+    return { data: data as UsoBeneficio | null, error }
+  },
+
+  async registrarUsoBeneficio(beneficioId: number, usuarioId: string) {
     const { error } = await supabase.rpc("incrementar_uso_beneficio", {
       p_id: beneficioId,
+      p_usuario_id: usuarioId,
     })
     if (error) return { data: null, error }
     return this.getBeneficio(beneficioId)

@@ -48,7 +48,11 @@ export function PWAInstallPrompt() {
       <div className="bg-white rounded-xl shadow-xl border border-primary/10 overflow-hidden max-w-md mx-auto pointer-events-auto">
         <div className="bg-gradient-to-r from-primary to-blue-500 p-4 flex justify-between items-center">
           <div className="flex items-center">
-            <img src="/placeholder.svg" alt="Logo Bienestar Montessori" className="w-8 h-8 mr-3" />
+            <img
+              src="/icons/icon-96x96.png"
+              alt="Logo Bienestar Montessori"
+              className="w-8 h-8 mr-3"
+            />
             <h3 className="text-white font-medium">Instalar aplicación</h3>
           </div>
           <button

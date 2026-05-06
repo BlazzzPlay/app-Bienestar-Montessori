@@ -81,3 +81,10 @@ export interface AsistenciaEvento {
   confirmado: boolean
   created_at: string
 }
+
+export interface UsoBeneficio {
+  id: number
+  beneficio_id: number
+  usuario_id: string
+  fecha_uso: string
+}

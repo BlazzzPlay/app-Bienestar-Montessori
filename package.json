@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
-    "test": "vitest"
+    "test": "vitest",
+    "generate-pwa-icons": "npx tsx scripts/generate-pwa-icons.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -70,6 +71,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sharp": "^0.32.0",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "@vitejs/plugin-react": "4.3.4",
@@ -81,6 +83,7 @@
     "pg": "^8.20.0",
     "postcss": "^8",
     "prettier": "^3.4.2",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
     "vitest": "^2.1.8"
