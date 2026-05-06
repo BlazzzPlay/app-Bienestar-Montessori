@@ -322,10 +322,10 @@ export default function CambiarFotoModal({
                 <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-700 space-y-1">
                   <p>
-                    <strong>Almacenamiento local</strong>
+                    <strong>Almacenamiento en la nube</strong>
                   </p>
                   <p>Formatos: JPG, PNG, WEBP | Máximo: 2MB</p>
-                  <p>La imagen se guarda en tu navegador.</p>
+                  <p>La imagen se guarda en tu perfil de la aplicación.</p>
                 </div>
               </div>
             </div>

@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/lib/supabaseClient"
 
 interface CambiarContrasenaModalProps {
   isOpen: boolean
@@ -31,7 +32,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  const { updatePassword, user } = useAuth()
+  const { user } = useAuth()
 
   // Simplificar la función validateRUTFormat para que solo valide formato básico:
   const validateRUTFormat = (rut: string): { isValid: boolean; message?: string } => {
@@ -94,7 +95,9 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
     setIsLoading(true)
 
     try {
-      const { error } = await updatePassword(nuevaContrasena)
+      const { error } = await supabase.auth.updateUser({
+        data: { rut: nuevaContrasena.replace(/[.-]/g, "").toLowerCase() },
+      })
 
       if (error) {
         setError(error.message || "Error al cambiar el RUT. Inténtalo nuevamente.")
