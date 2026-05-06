@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useState } from "react"
 import {
   Users,
   Gift,
@@ -15,38 +15,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAuth } from "@/hooks/useAuth"
 import { useAdmin } from "@/hooks/useAdmin"
 import { useRouter } from "next/navigation"
+import ComentariosTab from "@/components/admin/tabs/comentarios-tab"
+import AsistenciaTab from "@/components/admin/tabs/asistencia-tab"
+import EstadisticasUsoTab from "@/components/admin/tabs/estadisticas-uso-tab"
+import NotificationCenter from "@/components/notifications/notification-center"
 
 export default function AdminPage() {
-  const { profile, hasFullAccess } = useAuth()
-  const { estadisticas, loading } = useAdmin()
+  const { estadisticas, eventosConAsistencia, topBeneficios, loading, exportUsers, refetch } =
+    useAdmin()
   const router = useRouter()
-
-  useEffect(() => {
-    if (profile && !hasFullAccess()) router.push("/perfil")
-  }, [profile, hasFullAccess, router])
-
-  // ── Access denied ──
-  if (!profile || !hasFullAccess()) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm border-0 shadow-lg">
-          <CardContent className="p-6 text-center space-y-3">
-            <Shield className="h-10 w-10 text-destructive mx-auto" />
-            <h2 className="text-lg font-semibold text-foreground">Acceso Restringido</h2>
-            <p className="text-sm text-muted-foreground">
-              Solo los administradores pueden acceder a este panel.
-            </p>
-            <Button onClick={() => router.push("/perfil")} className="w-full">
-              Volver al Perfil
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const [notificationOpen, setNotificationOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,7 +96,7 @@ export default function AdminPage() {
 
             {/* ── Tabs ── */}
             <Tabs defaultValue="usuarios">
-              <TabsList className="w-full grid grid-cols-4 bg-muted rounded-xl p-1">
+              <TabsList className="w-full grid grid-cols-5 bg-muted rounded-xl p-1">
                 <TabsTrigger value="usuarios" className="rounded-lg text-xs sm:text-sm">
                   Usuarios
                 </TabsTrigger>
@@ -125,6 +105,9 @@ export default function AdminPage() {
                 </TabsTrigger>
                 <TabsTrigger value="eventos" className="rounded-lg text-xs sm:text-sm">
                   Eventos
+                </TabsTrigger>
+                <TabsTrigger value="comentarios" className="rounded-lg text-xs sm:text-sm">
+                  Comentarios
                 </TabsTrigger>
                 <TabsTrigger value="sugerencias" className="rounded-lg text-xs sm:text-sm">
                   Sugerencias
@@ -156,13 +139,7 @@ export default function AdminPage() {
                   action="Ver Todos"
                   href="/beneficios"
                 />
-                <QuickAction
-                  icon={BarChart3}
-                  title="Estadísticas de Uso"
-                  desc="Ver qué beneficios son los más utilizados"
-                  badge="Próximamente"
-                  badgeColor="bg-muted-foreground/10 text-muted-foreground"
-                />
+                <EstadisticasUsoTab beneficios={topBeneficios} />
               </TabsContent>
 
               <TabsContent value="eventos" className="mt-4 space-y-3">
@@ -173,13 +150,11 @@ export default function AdminPage() {
                   action="Ver Todos"
                   href="/eventos"
                 />
-                <QuickAction
-                  icon={Users}
-                  title="Asistencia"
-                  desc="Ver quiénes confirmaron asistencia"
-                  badge="Próximamente"
-                  badgeColor="bg-muted-foreground/10 text-muted-foreground"
-                />
+                <AsistenciaTab eventos={eventosConAsistencia} />
+              </TabsContent>
+
+              <TabsContent value="comentarios" className="mt-4">
+                <ComentariosTab onModerate={refetch} />
               </TabsContent>
 
               <TabsContent value="sugerencias" className="mt-4 space-y-3">
@@ -211,16 +186,26 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <QuickBtn icon={BarChart3} label="Reportes" />
+                  <QuickBtn
+                    icon={BarChart3}
+                    label="Reportes"
+                    onClick={() => router.push("/admin/analytics")}
+                  />
                   <QuickBtn icon={Settings} label="Configuración" />
-                  <QuickBtn icon={Users} label="Exportar" />
-                  <QuickBtn icon={MessageSquare} label="Notificaciones" />
+                  <QuickBtn icon={Users} label="Exportar" onClick={exportUsers} />
+                  <QuickBtn
+                    icon={MessageSquare}
+                    label="Notificaciones"
+                    onClick={() => setNotificationOpen(true)}
+                  />
                 </div>
               </CardContent>
             </Card>
           </>
         )}
       </div>
+
+      <NotificationCenter isOpen={notificationOpen} onClose={() => setNotificationOpen(false)} />
     </div>
   )
 }
@@ -304,14 +289,17 @@ function QuickAction({
 function QuickBtn({
   icon: Icon,
   label,
+  onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
+  onClick?: () => void
 }) {
   return (
     <Button
       variant="outline"
       className="h-16 flex flex-col gap-1 rounded-xl border-border hover:bg-muted"
+      onClick={onClick}
     >
       <Icon className="h-5 w-5" />
       <span className="text-xs">{label}</span>

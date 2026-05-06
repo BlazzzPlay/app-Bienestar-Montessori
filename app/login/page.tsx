@@ -2,18 +2,24 @@
 
 import { useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import GoogleSignInButton from "@/components/google-signin-button"
 
 export default function LoginPage() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/perfil")
+      const returnUrl = searchParams.get("returnUrl")
+      if (returnUrl) {
+        router.push(returnUrl)
+      } else {
+        router.push("/perfil")
+      }
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, searchParams])
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">

@@ -6,6 +6,7 @@ import type {
   ComentarioBeneficio,
   ComentarioPublicacion,
   Sugerencia,
+  AsistenciaEvento,
 } from "./supabase"
 
 export const database = {
@@ -114,6 +115,16 @@ export const database = {
       { onConflict: "publicacion_id,usuario_id" },
     )
     return { data: !error, error }
+  },
+
+  async getAsistenciaEvento(publicacionId: number, usuarioId: string) {
+    const { data, error } = await supabase
+      .from("asistencias_evento")
+      .select("*")
+      .eq("publicacion_id", publicacionId)
+      .eq("usuario_id", usuarioId)
+      .single()
+    return { data: data as AsistenciaEvento | null, error }
   },
 
   // --- COMENTARIOS BENEFICIOS ---
@@ -240,6 +251,158 @@ export const database = {
       .select()
       .single()
     return { data: data as Sugerencia | null, error }
+  },
+
+  // --- COMENTARIOS PENDIENTES (Moderación) ---
+
+  async getPendingCommentsBeneficios() {
+    const { data, error } = await supabase
+      .from("comentarios_beneficios")
+      .select("*,perfiles(nombre_completo,avatar_url)")
+      .eq("estado", "pendiente")
+      .order("fecha_creacion", { ascending: false })
+
+    const normalized = (data || []).map((item: any) => ({
+      ...item,
+      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
+    }))
+
+    return {
+      data: normalized as (ComentarioBeneficio & {
+        perfiles?: { nombre_completo: string; avatar_url?: string }
+      })[],
+      error,
+    }
+  },
+
+  async getPendingCommentsPublicaciones() {
+    const { data, error } = await supabase
+      .from("comentarios_publicaciones")
+      .select("*,perfiles(nombre_completo,avatar_url)")
+      .eq("estado", "pendiente")
+      .order("fecha_creacion", { ascending: false })
+
+    const normalized = (data || []).map((item: any) => ({
+      ...item,
+      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
+    }))
+
+    return {
+      data: normalized as (ComentarioPublicacion & {
+        perfiles?: { nombre_completo: string; avatar_url?: string }
+      })[],
+      error,
+    }
+  },
+
+  async approveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: number) {
+    const { data, error } = await supabase
+      .from(table)
+      .update({ estado: "aprobado" })
+      .eq("id", id)
+      .select()
+      .single()
+    return {
+      data: data as (ComentarioBeneficio | ComentarioPublicacion) | null,
+      error,
+    }
+  },
+
+  async archiveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: number) {
+    const { data, error } = await supabase
+      .from(table)
+      .update({ estado: "archivado" })
+      .eq("id", id)
+      .select()
+      .single()
+    return {
+      data: data as (ComentarioBeneficio | ComentarioPublicacion) | null,
+      error,
+    }
+  },
+
+  // --- ASISTENCIAS ---
+
+  async getAsistenciasPorEvento(publicacionId: number) {
+    const { data, error } = await supabase
+      .from("asistencias_evento")
+      .select("*,perfiles(nombre_completo,avatar_url)")
+      .eq("publicacion_id", publicacionId)
+      .eq("confirmado", true)
+      .order("created_at", { ascending: false })
+
+    const normalized = (data || []).map((item: any) => ({
+      ...item,
+      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
+    }))
+
+    return {
+      data: normalized as (AsistenciaEvento & {
+        perfiles?: { nombre_completo: string; avatar_url?: string }
+      })[],
+      error,
+    }
+  },
+
+  // --- BENEFICIOS POR USO ---
+
+  async getBenefitsByUsage() {
+    const { data, error } = await supabase
+      .from("beneficios")
+      .select("*")
+      .order("contador_usos", { ascending: false })
+    return { data: (data || []) as Beneficio[], error }
+  },
+
+  async getRecentComments(limit = 10) {
+    const [beneficiosRes, publicacionesRes] = await Promise.all([
+      supabase
+        .from("comentarios_beneficios")
+        .select("*,perfiles(nombre_completo,avatar_url)")
+        .order("fecha_creacion", { ascending: false })
+        .limit(limit),
+      supabase
+        .from("comentarios_publicaciones")
+        .select("*,perfiles(nombre_completo,avatar_url)")
+        .order("fecha_creacion", { ascending: false })
+        .limit(limit),
+    ])
+
+    const beneficios = (beneficiosRes.data || []).map((item: any) => ({
+      ...item,
+      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
+      source: "beneficio" as const,
+    }))
+
+    const publicaciones = (publicacionesRes.data || []).map((item: any) => ({
+      ...item,
+      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
+      source: "publicacion" as const,
+    }))
+
+    const merged = [...beneficios, ...publicaciones].sort(
+      (a, b) => +new Date(b.fecha_creacion) - +new Date(a.fecha_creacion),
+    )
+
+    return {
+      data: merged.slice(0, limit) as ((ComentarioBeneficio | ComentarioPublicacion) & {
+        perfiles?: { nombre_completo: string; avatar_url?: string }
+        source: "beneficio" | "publicacion"
+      })[],
+      error: beneficiosRes.error || publicacionesRes.error,
+    }
+  },
+
+  async getRecentSignups(limit = 10) {
+    const { data, error } = await supabase
+      .from("perfiles")
+      .select("id,nombre_completo,created_at")
+      .order("created_at", { ascending: false })
+      .limit(limit)
+    return {
+      data: (data || []) as { id: string; nombre_completo: string; created_at: string }[],
+      error,
+    }
   },
 
   // --- ESTADÍSTICAS ---

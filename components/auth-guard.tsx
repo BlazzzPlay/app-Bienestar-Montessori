@@ -3,29 +3,31 @@
 import type React from "react"
 
 import { useAuth } from "@/hooks/useAuth"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 interface AuthGuardProps {
   children: React.ReactNode
-  requireAuth?: boolean
+  requiredRole?: "authenticated" | "admin"
 }
 
-export default function AuthGuard({ children, requireAuth = true }: AuthGuardProps) {
-  const { isAuthenticated, loading } = useAuth()
+export default function AuthGuard({ children, requiredRole = "authenticated" }: AuthGuardProps) {
+  const { isAuthenticated, loading, profile, hasFullAccess } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
-  // Añadir estado para errores de autenticación
   const [authError, setAuthError] = useState<string | null>(null)
 
-  // Mejorar el useEffect con mejor manejo de errores:
   useEffect(() => {
     if (!loading) {
       try {
-        if (requireAuth && !isAuthenticated) {
-          router.push("/login")
-        } else if (!requireAuth && isAuthenticated) {
+        if (!isAuthenticated) {
+          const returnUrl = encodeURIComponent(pathname)
+          router.push(`/login?returnUrl=${returnUrl}`)
+        } else if (requiredRole === "admin" && !hasFullAccess()) {
+          toast.error("No tenés permisos para acceder a esta sección.")
           router.push("/perfil")
         }
       } catch (error) {
@@ -33,9 +35,8 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
         setAuthError("Error de navegación")
       }
     }
-  }, [isAuthenticated, loading, requireAuth, router])
+  }, [isAuthenticated, loading, requiredRole, hasFullAccess, router, pathname])
 
-  // Mejorar el renderizado de carga:
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -47,7 +48,6 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
     )
   }
 
-  // Añadir manejo de errores de autenticación:
   if (authError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -68,11 +68,11 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
     )
   }
 
-  if (requireAuth && !isAuthenticated) {
+  if (!isAuthenticated) {
     return null
   }
 
-  if (!requireAuth && isAuthenticated) {
+  if (requiredRole === "admin" && !hasFullAccess()) {
     return null
   }
 

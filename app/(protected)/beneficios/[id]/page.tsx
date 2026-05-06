@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, CheckCircle2, ArrowLeft, Users, MessageSquare, Send } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { MapPin, CheckCircle2, ArrowLeft, Users, MessageSquare, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,14 +11,69 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useBeneficio } from "@/hooks/useBeneficio"
+import { useAuth } from "@/hooks/useAuth"
 import { getTagColor } from "@/lib/tag-utils"
 
 export default function DetalleBeneficioPage() {
   const { id } = useParams()
-  const { data: beneficio, comentarios, loading, error } = useBeneficio(Number(id))
+  const router = useRouter()
+  const { user, profile, isAuthenticated } = useAuth()
+  const {
+    data: beneficio,
+    comentarios,
+    loading,
+    error,
+    hasUsed,
+    usageLoading,
+    commentLoading,
+    registerUse,
+    submitComment,
+  } = useBeneficio(
+    Number(id),
+    user?.id,
+    profile
+      ? {
+          nombre_completo: profile.nombre_completo,
+          avatar_url: profile.avatar_url,
+        }
+      : undefined,
+  )
   const [nuevoComentario, setNuevoComentario] = useState("")
+  const [comentarioEnviado, setComentarioEnviado] = useState(false)
+
+  const handleRegistrarUso = async () => {
+    if (!isAuthenticated) {
+      toast.error("Debes iniciar sesión para registrar uso")
+      router.push("/login")
+      return
+    }
+    try {
+      await registerUse()
+      toast.success("Uso registrado")
+    } catch {
+      toast.error("Error al registrar uso. Inténtalo de nuevo.")
+    }
+  }
+
+  const handlePublicarComentario = async () => {
+    if (!isAuthenticated) {
+      toast.error("Debes iniciar sesión para comentar")
+      router.push("/login")
+      return
+    }
+    const contenido = nuevoComentario.trim()
+    if (!contenido) return
+    try {
+      await submitComment(contenido)
+      setNuevoComentario("")
+      setComentarioEnviado(true)
+      setTimeout(() => setComentarioEnviado(false), 3000)
+      toast.success("Comentario enviado")
+    } catch {
+      toast.error("Error al enviar comentario. Inténtalo de nuevo.")
+    }
+  }
 
   // ── Loading ──
   if (loading) {
@@ -61,6 +118,7 @@ export default function DetalleBeneficioPage() {
             variant="ghost"
             size="icon"
             className="text-primary-foreground hover:bg-primary-foreground/10 h-8 w-8"
+            aria-label="Volver a beneficios"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -146,8 +204,16 @@ export default function DetalleBeneficioPage() {
           <Button
             className="w-full h-12 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold rounded-xl text-base"
             size="lg"
+            onClick={handleRegistrarUso}
+            disabled={usageLoading || hasUsed}
+            aria-label={hasUsed ? "Uso ya registrado" : "Registrar uso del beneficio"}
           >
-            Registrar Uso del Beneficio
+            {usageLoading ? (
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            ) : hasUsed ? (
+              <CheckCircle2 className="h-5 w-5 mr-2" />
+            ) : null}
+            {hasUsed ? "Uso registrado" : "Registrar Uso del Beneficio"}
           </Button>
 
           {/* ── Comments ── */}
@@ -166,7 +232,12 @@ export default function DetalleBeneficioPage() {
             {comentarios.length > 0 ? (
               <div className="space-y-3">
                 {comentarios.map((comentario) => (
-                  <Card key={comentario.id} className="border-0 shadow-sm">
+                  <Card
+                    key={comentario.id}
+                    className={`border-0 shadow-sm ${
+                      comentario.estado === "pendiente" ? "opacity-60" : ""
+                    }`}
+                  >
                     <CardContent className="p-4">
                       <div className="flex gap-3">
                         <Avatar className="h-9 w-9 flex-shrink-0">
@@ -193,8 +264,22 @@ export default function DetalleBeneficioPage() {
                             <span className="text-xs text-muted-foreground flex-shrink-0">
                               {new Date(comentario.fecha_creacion).toLocaleDateString("es-ES")}
                             </span>
+                            {comentario.estado === "pendiente" && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] bg-warning/10 text-warning border-warning/30"
+                              >
+                                Pendiente
+                              </Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{comentario.contenido}</p>
+                          <p
+                            className={`text-sm text-muted-foreground ${
+                              comentario.estado === "pendiente" ? "italic" : ""
+                            }`}
+                          >
+                            {comentario.contenido}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -218,11 +303,17 @@ export default function DetalleBeneficioPage() {
                 />
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  disabled={!nuevoComentario.trim()}
+                  disabled={commentLoading || !nuevoComentario.trim() || comentarioEnviado}
+                  onClick={handlePublicarComentario}
                   size="lg"
+                  aria-label={comentarioEnviado ? "Comentario enviado" : "Publicar comentario"}
                 >
-                  <Send className="h-4 w-4 mr-2" />
-                  Publicar Comentario
+                  {commentLoading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  {comentarioEnviado ? "¡Enviado!" : "Publicar Comentario"}
                 </Button>
               </CardContent>
             </Card>

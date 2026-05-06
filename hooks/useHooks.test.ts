@@ -30,13 +30,25 @@ vi.mock("@/lib/supabaseClient", () => ({
 }))
 
 // Mock database module (hoisted for vi.mock compatibility)
-const { mockGetBeneficios, mockGetPublicaciones, mockGetAllProfiles, mockGetSugerencias } =
-  vi.hoisted(() => ({
-    mockGetBeneficios: vi.fn(),
-    mockGetPublicaciones: vi.fn(),
-    mockGetAllProfiles: vi.fn(),
-    mockGetSugerencias: vi.fn(),
-  }))
+const {
+  mockGetBeneficios,
+  mockGetPublicaciones,
+  mockGetAllProfiles,
+  mockGetSugerencias,
+  mockGetPendingCommentsBeneficios,
+  mockGetPendingCommentsPublicaciones,
+  mockGetBenefitsByUsage,
+  mockGetAsistenciasPorEvento,
+} = vi.hoisted(() => ({
+  mockGetBeneficios: vi.fn(),
+  mockGetPublicaciones: vi.fn(),
+  mockGetAllProfiles: vi.fn(),
+  mockGetSugerencias: vi.fn(),
+  mockGetPendingCommentsBeneficios: vi.fn(),
+  mockGetPendingCommentsPublicaciones: vi.fn(),
+  mockGetBenefitsByUsage: vi.fn(),
+  mockGetAsistenciasPorEvento: vi.fn(),
+}))
 
 vi.mock("@/lib/database", () => ({
   database: {
@@ -44,6 +56,10 @@ vi.mock("@/lib/database", () => ({
     getPublicaciones: mockGetPublicaciones,
     getAllProfiles: mockGetAllProfiles,
     getSugerencias: mockGetSugerencias,
+    getPendingCommentsBeneficios: mockGetPendingCommentsBeneficios,
+    getPendingCommentsPublicaciones: mockGetPendingCommentsPublicaciones,
+    getBenefitsByUsage: mockGetBenefitsByUsage,
+    getAsistenciasPorEvento: mockGetAsistenciasPorEvento,
   },
 }))
 
@@ -159,6 +175,10 @@ describe("useAdmin", () => {
     mockGetBeneficios.mockResolvedValue({ data: [], error: null })
     mockGetPublicaciones.mockResolvedValue({ data: [], error: null })
     mockGetSugerencias.mockResolvedValue({ data: mockSugerencias, error: null })
+    mockGetPendingCommentsBeneficios.mockResolvedValue({ data: [], error: null })
+    mockGetPendingCommentsPublicaciones.mockResolvedValue({ data: [], error: null })
+    mockGetBenefitsByUsage.mockResolvedValue({ data: [], error: null })
+    mockGetAsistenciasPorEvento.mockResolvedValue({ data: [], error: null })
 
     const { result } = renderHook(() => useAdmin())
 

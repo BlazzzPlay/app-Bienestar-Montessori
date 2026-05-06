@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { toast } from "sonner"
 import {
   ArrowLeft,
   CalendarDays,
@@ -13,6 +15,8 @@ import {
   CheckCircle2,
   XCircle,
   Send,
+  Loader2,
+  CalendarPlus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,10 +25,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useEvento } from "@/hooks/useEvento"
 import { useAuth } from "@/hooks/useAuth"
 import { database } from "@/lib/database"
+import { generateGoogleCalendarUrl } from "@/lib/calendar-utils"
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   Evento: CalendarDays,
@@ -41,8 +45,19 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function DetalleEventoPage() {
   const params = useParams()
   const id = params.id as string
-  const { event, comments, loading, error, refetch, submitComment } = useEvento(id)
-  const { user, canModerate } = useAuth()
+  const router = useRouter()
+  const { user, canModerate, isAuthenticated } = useAuth()
+  const {
+    event,
+    comments,
+    loading,
+    error,
+    refetch,
+    submitComment,
+    isAttending,
+    attendanceLoading,
+    confirmAttendance,
+  } = useEvento(id, user?.id)
   const [nuevoComentario, setNuevoComentario] = useState("")
   const [comentarioEnviado, setComentarioEnviado] = useState(false)
   const [mostrarPendientes, setMostrarPendientes] = useState(false)
@@ -66,6 +81,31 @@ export default function DetalleEventoPage() {
       accion === "aprobar" ? "aprobado" : "archivado",
     )
     await refetch()
+  }
+
+  const handleConfirmarAsistencia = async () => {
+    if (!isAuthenticated) {
+      toast.error("Debes iniciar sesión para confirmar asistencia")
+      router.push("/login")
+      return
+    }
+    try {
+      await confirmAttendance()
+      toast.success("Asistencia confirmada")
+    } catch {
+      toast.error("Error al confirmar asistencia. Inténtalo de nuevo.")
+    }
+  }
+
+  const handleAgregarCalendario = () => {
+    if (!isAuthenticated) {
+      toast.error("Debes iniciar sesión para agregar al calendario")
+      router.push("/login")
+      return
+    }
+    if (!event) return
+    const url = generateGoogleCalendarUrl(event)
+    window.open(url, "_blank")
   }
 
   const formatearFecha = (fecha: string | Date) =>
@@ -193,11 +233,27 @@ export default function DetalleEventoPage() {
               <Button
                 className="w-full h-12 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold rounded-xl text-base"
                 size="lg"
+                onClick={handleConfirmarAsistencia}
+                disabled={isAttending || attendanceLoading}
+                aria-label={
+                  isAttending ? "Asistencia ya confirmada" : "Confirmar asistencia al evento"
+                }
               >
-                <CheckCircle2 className="h-5 w-5 mr-2" />
-                Confirmar Asistencia
+                {attendanceLoading ? (
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                )}
+                {isAttending ? "Asistencia Confirmada" : "Confirmar Asistencia"}
               </Button>
-              <Button variant="outline" className="w-full h-12 rounded-xl" size="lg">
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl"
+                size="lg"
+                onClick={handleAgregarCalendario}
+                aria-label="Agregar evento a Google Calendar"
+              >
+                <CalendarPlus className="h-5 w-5 mr-2" />
                 Agregar a Calendario
               </Button>
             </div>

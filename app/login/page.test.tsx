@@ -11,6 +11,7 @@ vi.mock("@/hooks/useAuth", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 vi.mock("@/components/google-signin-button", () => ({
