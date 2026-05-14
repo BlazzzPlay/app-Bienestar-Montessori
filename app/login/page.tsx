@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { signIn } from "@/lib/pocketbase-auth"
 
+const DEV_USERS = [
+  { label: "Admin", email: "admin@bienestarmontessori.cl", password: "test123456", rol: "Administrador" },
+  { label: "Usuario", email: "user@bienestarmontessori.cl", password: "test123456", rol: "Beneficiario" },
+]
+
 function LoginForm() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
@@ -14,6 +19,11 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isDev, setIsDev] = useState(false)
+
+  useEffect(() => {
+    setIsDev(typeof window !== "undefined" && window.location.hostname === "localhost")
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -48,6 +58,18 @@ function LoginForm() {
     },
     [email, password],
   )
+
+  const quickLogin = useCallback(async (user: (typeof DEV_USERS)[number]) => {
+    setEmail(user.email)
+    setPassword(user.password)
+    setError(null)
+    setLoading(true)
+    const { error: signInError } = await signIn(user.email, user.password)
+    setLoading(false)
+    if (signInError) {
+      setError(signInError.message)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -113,6 +135,28 @@ function LoginForm() {
             Solo se permiten cuentas @colegiomontessori.cl
           </p>
         </form>
+
+        {isDev && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <p className="text-xs text-center text-muted-foreground font-medium">
+              ⚡ Desarrollo — inicio rápido
+            </p>
+            <div className="flex gap-2">
+              {DEV_USERS.map((user) => (
+                <button
+                  key={user.email}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => quickLogin(user)}
+                  className="flex-1 py-2 px-3 text-xs font-medium rounded-md border border-border bg-muted hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {user.label}
+                  <span className="block text-[10px] text-muted-foreground">{user.rol}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
