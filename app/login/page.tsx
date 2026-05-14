@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { Suspense, useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { signIn } from "@/lib/pocketbase-auth"
 
-export default function LoginPage() {
+function LoginForm() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -45,8 +45,6 @@ export default function LoginPage() {
       if (signInError) {
         setError(signInError.message)
       }
-      // On success, useAuth's onChange listener picks up the auth state
-      // and the useEffect above redirects to /perfil or returnUrl
     },
     [email, password],
   )
@@ -117,5 +115,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }
