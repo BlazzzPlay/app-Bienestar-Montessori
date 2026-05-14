@@ -120,12 +120,21 @@ let _browserClient: PocketBase | null = null
 
 /**
  * Returns a lazily-initialised PocketBase singleton for browser usage.
- * Auth state is persisted to localStorage via PB's built-in LocalAuthStore.
+ * Auth state is persisted to localStorage AND synced to pb_auth cookie
+ * so Next.js middleware can read it on subsequent requests.
  */
 export function createBrowserClient(): PocketBase {
   if (!_browserClient) {
     _browserClient = new PocketBase(PB_URL())
     setupDefaults(_browserClient)
+
+    // Sync auth store changes to a cookie the middleware can read
+    if (typeof document !== "undefined") {
+      _browserClient.authStore.onChange((_token) => {
+        const cookie = _browserClient!.authStore.exportToCookie({ httpOnly: false })
+        document.cookie = cookie
+      })
+    }
   }
   return _browserClient
 }

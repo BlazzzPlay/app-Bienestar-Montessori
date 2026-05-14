@@ -22,7 +22,9 @@ function LoginForm() {
 
   const redirectAfterLogin = useCallback(() => {
     const returnUrl = searchParams.get("returnUrl")
-    router.push(returnUrl ?? "/perfil")
+    const target = returnUrl ?? "/perfil"
+    console.log("[login] redirectAfterLogin →", target)
+    router.push(target)
   }, [router, searchParams])
 
   useEffect(() => {
@@ -61,15 +63,21 @@ function LoginForm() {
   )
 
   const quickLogin = useCallback(async (user: (typeof DEV_USERS)[number]) => {
+    console.log("[login] quickLogin starting:", user.email)
     setEmail(user.email)
     setPassword(user.password)
     setError(null)
     setLoading(true)
-    const { error: signInError } = await signIn(user.email, user.password)
+    console.log("[login] calling signIn...")
+    const { data, error: signInError } = await signIn(user.email, user.password)
+    console.log("[login] signIn result:", { data: data ? "ok" : null, error: signInError?.message })
     setLoading(false)
     if (signInError) {
+      console.log("[login] error:", signInError.message)
       setError(signInError.message)
     } else {
+      console.log("[login] success, checking cookie:", document.cookie.includes("pb_auth"))
+      console.log("[login] redirecting to /perfil...")
       redirectAfterLogin()
     }
   }, [redirectAfterLogin])
