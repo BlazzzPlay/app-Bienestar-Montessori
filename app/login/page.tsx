@@ -19,12 +19,6 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [isDev, setIsDev] = useState(false)
-
-  useEffect(() => {
-    const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || ""
-    setIsDev(pbUrl.includes("localhost") || pbUrl.includes("127.0.0.1"))
-  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -137,27 +131,25 @@ function LoginForm() {
           </p>
         </form>
 
-        {isDev && (
-          <div className="space-y-2 pt-2 border-t border-border">
-            <p className="text-xs text-center text-muted-foreground font-medium">
-              ⚡ Desarrollo — inicio rápido
-            </p>
-            <div className="flex gap-2">
-              {DEV_USERS.map((user) => (
-                <button
-                  key={user.email}
-                  type="button"
-                  disabled={loading}
-                  onClick={() => quickLogin(user)}
-                  className="flex-1 py-2 px-3 text-xs font-medium rounded-md border border-border bg-muted hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {user.label}
-                  <span className="block text-[10px] text-muted-foreground">{user.rol}</span>
-                </button>
-              ))}
-            </div>
+        <div className="space-y-2 pt-2 border-t border-border">
+          <p className="text-xs text-center text-muted-foreground font-medium">
+            ⚡ Inicio rápido (testing)
+          </p>
+          <div className="flex gap-2">
+            {DEV_USERS.map((user) => (
+              <button
+                key={user.email}
+                type="button"
+                disabled={loading}
+                onClick={() => quickLogin(user)}
+                className="flex-1 py-2 px-3 text-xs font-medium rounded-md border border-border bg-muted hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {user.label}
+                <span className="block text-[10px] text-muted-foreground">{user.rol}</span>
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
