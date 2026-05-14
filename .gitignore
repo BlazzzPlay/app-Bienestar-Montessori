@@ -27,6 +27,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# PocketBase runtime data
+pb_data/
+pocketbase
+CHANGELOG.md
+LICENSE.md
+
 # AI agents (auto-generated)
 .agents/
 .claude/
