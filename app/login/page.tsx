@@ -20,12 +20,16 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const redirectAfterLogin = useCallback(() => {
+    const returnUrl = searchParams.get("returnUrl")
+    router.push(returnUrl ?? "/perfil")
+  }, [router, searchParams])
+
   useEffect(() => {
     if (isAuthenticated) {
-      const returnUrl = searchParams.get("returnUrl")
-      router.push(returnUrl ?? "/perfil")
+      redirectAfterLogin()
     }
-  }, [isAuthenticated, router, searchParams])
+  }, [isAuthenticated, redirectAfterLogin])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -49,9 +53,11 @@ function LoginForm() {
 
       if (signInError) {
         setError(signInError.message)
+      } else {
+        redirectAfterLogin()
       }
     },
-    [email, password],
+    [email, password, redirectAfterLogin],
   )
 
   const quickLogin = useCallback(async (user: (typeof DEV_USERS)[number]) => {
@@ -63,8 +69,10 @@ function LoginForm() {
     setLoading(false)
     if (signInError) {
       setError(signInError.message)
+    } else {
+      redirectAfterLogin()
     }
-  }, [])
+  }, [redirectAfterLogin])
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
