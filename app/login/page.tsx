@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useState, useEffect, useCallback } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { signIn } from "@/lib/pocketbase-auth"
 
@@ -12,7 +12,6 @@ const DEV_USERS = [
 
 function LoginForm() {
   const { isAuthenticated } = useAuth()
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [email, setEmail] = useState("")
@@ -24,8 +23,9 @@ function LoginForm() {
     const returnUrl = searchParams.get("returnUrl")
     const target = returnUrl ?? "/perfil"
     console.log("[login] redirectAfterLogin →", target)
-    router.push(target)
-  }, [router, searchParams])
+    // Use hard navigation so cookie is sent with the server request
+    window.location.href = target
+  }, [searchParams])
 
   useEffect(() => {
     if (isAuthenticated) {
