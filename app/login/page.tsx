@@ -21,10 +21,7 @@ function LoginForm() {
 
   const redirectAfterLogin = useCallback(() => {
     const returnUrl = searchParams.get("returnUrl")
-    const target = returnUrl ?? "/perfil"
-    console.log("[login] redirectAfterLogin →", target)
-    // Use hard navigation so cookie is sent with the server request
-    window.location.href = target
+    window.location.href = returnUrl ?? "/perfil"
   }, [searchParams])
 
   useEffect(() => {
@@ -63,21 +60,15 @@ function LoginForm() {
   )
 
   const quickLogin = useCallback(async (user: (typeof DEV_USERS)[number]) => {
-    console.log("[login] quickLogin starting:", user.email)
     setEmail(user.email)
     setPassword(user.password)
     setError(null)
     setLoading(true)
-    console.log("[login] calling signIn...")
-    const { data, error: signInError } = await signIn(user.email, user.password)
-    console.log("[login] signIn result:", { data: data ? "ok" : null, error: signInError?.message })
+    const { error: signInError } = await signIn(user.email, user.password)
     setLoading(false)
     if (signInError) {
-      console.log("[login] error:", signInError.message)
       setError(signInError.message)
     } else {
-      console.log("[login] success, checking cookie:", document.cookie.includes("pb_auth"))
-      console.log("[login] redirecting to /perfil...")
       redirectAfterLogin()
     }
   }, [redirectAfterLogin])
