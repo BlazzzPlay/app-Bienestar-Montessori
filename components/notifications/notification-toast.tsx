@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import type { DynamicNotification } from "@/lib/notifications-system"
+import type { DynamicNotification } from "@/hooks/useNotificationSystem"
 
 interface NotificationToastProps {
   notification: DynamicNotification

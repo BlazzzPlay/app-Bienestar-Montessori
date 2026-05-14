@@ -15,17 +15,12 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNotificationSystem } from "@/hooks/useNotificationSystem"
 import NotificationItem from "./notification-item"
-// Añadir la importación del hook useAuth
-import { useAuth } from "@/hooks/useAuth"
-
 interface NotificationCenterProps {
   isOpen: boolean
   onClose: () => void
 }
 
-// Añadir la verificación de rol al inicio del componente
 export default function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
-  const { profile } = useAuth()
   const {
     notifications,
     unreadNotifications,
@@ -40,11 +35,6 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
   } = useNotificationSystem()
 
   const [activeTab, setActiveTab] = useState("all")
-
-  // Si el usuario no es administrador, no mostrar el centro de notificaciones
-  if (!profile || profile.rol !== "Administrador") {
-    return null
-  }
 
   const handleMarkAsRead = (notificationId: string) => {
     markAsRead(notificationId)

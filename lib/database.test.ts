@@ -127,4 +127,101 @@ describe("database", () => {
       expect(error).toBeNull()
     })
   })
+
+  describe("getNotificaciones", () => {
+    it("returns notifications ordered by creado_en desc", async () => {
+      const notifs = [
+        {
+          id: "n1",
+          usuario_id: "u1",
+          titulo: "T1",
+          mensaje: "M1",
+          estado: "no_leida",
+          tipo: "sistema",
+          prioridad: "normal",
+          creado_en: "2024-01-02",
+          updated_at: "2024-01-02",
+        },
+        {
+          id: "n2",
+          usuario_id: "u1",
+          titulo: "T2",
+          mensaje: "M2",
+          estado: "leida",
+          tipo: "evento",
+          prioridad: "alta",
+          creado_en: "2024-01-01",
+          updated_at: "2024-01-01",
+        },
+      ]
+      mockFrom.mockReturnValue(createChain({ data: notifs, error: null }))
+
+      const { data, error } = await database.getNotificaciones("u1")
+      expect(data).toEqual(notifs)
+      expect(error).toBeNull()
+    })
+  })
+
+  describe("marcarNotificacionLeida", () => {
+    it("updates estado to leida", async () => {
+      const updated = {
+        id: "n1",
+        usuario_id: "u1",
+        titulo: "T1",
+        mensaje: "M1",
+        estado: "leida",
+        tipo: "sistema",
+        prioridad: "normal",
+        creado_en: "2024-01-01",
+        updated_at: "2024-01-01",
+        leido_en: "2024-01-01T00:00:00Z",
+      }
+      const chain = createChain({ data: updated, error: null })
+      mockFrom.mockReturnValue(chain)
+
+      const { data, error } = await database.marcarNotificacionLeida("n1")
+      expect(data).toEqual(updated)
+      expect(error).toBeNull()
+    })
+  })
+
+  describe("broadcastNotificacion", () => {
+    it("calls enviar_notificacion_broadcast RPC", async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null })
+
+      const { error } = await database.broadcastNotificacion(
+        "Titulo",
+        "Mensaje",
+        "sistema",
+        "Administrador",
+        "alta",
+      )
+      expect(error).toBeNull()
+      expect(mockRpc).toHaveBeenCalledWith("enviar_notificacion_broadcast", {
+        p_titulo: "Titulo",
+        p_mensaje: "Mensaje",
+        p_tipo: "sistema",
+        p_target_role: "Administrador",
+        p_prioridad: "alta",
+        p_icono: null,
+        p_color: null,
+        p_action_url: null,
+        p_action_text: null,
+        p_metadata: null,
+      })
+    })
+
+    it("calls RPC with null target_role for global broadcast", async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null })
+
+      const { error } = await database.broadcastNotificacion("Titulo", "Mensaje", "evento")
+      expect(error).toBeNull()
+      expect(mockRpc).toHaveBeenCalledWith(
+        "enviar_notificacion_broadcast",
+        expect.objectContaining({
+          p_target_role: null,
+        }),
+      )
+    })
+  })
 })

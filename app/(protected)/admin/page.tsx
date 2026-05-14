@@ -20,13 +20,13 @@ import { useRouter } from "next/navigation"
 import ComentariosTab from "@/components/admin/tabs/comentarios-tab"
 import AsistenciaTab from "@/components/admin/tabs/asistencia-tab"
 import EstadisticasUsoTab from "@/components/admin/tabs/estadisticas-uso-tab"
-import NotificationCenter from "@/components/notifications/notification-center"
+import NotificationCompose from "@/components/admin/notification-compose"
 
 export default function AdminPage() {
   const { estadisticas, eventosConAsistencia, topBeneficios, loading, exportUsers, refetch } =
     useAdmin()
   const router = useRouter()
-  const [notificationOpen, setNotificationOpen] = useState(false)
+  const [composeOpen, setComposeOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background">
@@ -196,7 +196,7 @@ export default function AdminPage() {
                   <QuickBtn
                     icon={MessageSquare}
                     label="Notificaciones"
-                    onClick={() => setNotificationOpen(true)}
+                    onClick={() => setComposeOpen(true)}
                   />
                 </div>
               </CardContent>
@@ -205,7 +205,7 @@ export default function AdminPage() {
         )}
       </div>
 
-      <NotificationCenter isOpen={notificationOpen} onClose={() => setNotificationOpen(false)} />
+      <NotificationCompose isOpen={composeOpen} onClose={() => setComposeOpen(false)} />
     </div>
   )
 }

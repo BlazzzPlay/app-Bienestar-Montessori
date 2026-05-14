@@ -1,21 +1,59 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { notificationSystem, type DynamicNotification } from "@/lib/notifications-system"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { toast } from "sonner"
+import { supabase } from "@/lib/supabaseClient"
+import { database } from "@/lib/database"
 import { useAuth } from "./useAuth"
+import type { Notificacion } from "@/lib/supabase"
+
+export interface DynamicNotification {
+  id: string
+  type: string
+  title: string
+  message: string
+  status: "unread" | "read" | "dismissed"
+  createdAt: string
+  readAt?: string
+  metadata?: Record<string, any>
+  priority?: string
+  color?: string
+  icon?: string
+  actionUrl?: string
+  actionText?: string
+  expiresAt?: Date | string
+  created_at?: string
+}
+
+function mapToDynamic(n: Notificacion): DynamicNotification {
+  return {
+    id: n.id,
+    type: n.tipo,
+    title: n.titulo,
+    message: n.mensaje,
+    status: n.estado === "no_leida" ? "unread" : n.estado === "leida" ? "read" : "dismissed",
+    createdAt: n.creado_en,
+    created_at: n.creado_en,
+    readAt: n.leido_en ?? undefined,
+    metadata: n.metadata ?? undefined,
+    priority: n.prioridad,
+    color: n.color ?? undefined,
+    icon: n.icono ?? undefined,
+    actionUrl: n.action_url ?? undefined,
+    actionText: n.action_text ?? undefined,
+  }
+}
 
 export function useNotificationSystem() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const [notifications, setNotifications] = useState<DynamicNotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const realtimeConnectedRef = useRef(false)
 
-  // Función para cargar notificaciones
   const loadNotifications = useCallback(async () => {
-    if (!user?.id) return
-
-    // Solo cargar notificaciones para administradores
-    if (profile?.rol !== "Administrador") {
+    if (!user?.id) {
       setNotifications([])
       setUnreadCount(0)
       setLoading(false)
@@ -23,21 +61,17 @@ export function useNotificationSystem() {
     }
 
     setLoading(true)
-
     try {
-      // Obtener notificaciones
-      const userNotifications = await notificationSystem.getUserNotifications(user.id)
-      setNotifications(userNotifications)
-
-      // Obtener contador de no leídas
-      const count = await notificationSystem.getUnreadCount(user.id)
-      setUnreadCount(count)
+      const { data } = await database.getNotificaciones(user.id)
+      const mapped = (data || []).map(mapToDynamic)
+      setNotifications(mapped)
+      setUnreadCount(mapped.filter((n) => n.status === "unread").length)
     } catch (error) {
       console.error("Error loading notifications:", error)
     } finally {
       setLoading(false)
     }
-  }, [user?.id, profile?.rol])
+  }, [user?.id])
 
   useEffect(() => {
     if (!user?.id) {
@@ -47,109 +81,132 @@ export function useNotificationSystem() {
       return
     }
 
-    // Solo inicializar notificaciones para administradores
-    const initializeNotifications = async () => {
-      setLoading(true)
+    loadNotifications()
 
-      // Solo para administradores
-      if (profile?.rol === "Administrador") {
-        // Simular contador de inicios de sesión (en una app real, esto vendría de los datos del usuario)
-        const loginCount = Number.parseInt(localStorage.getItem(`loginCount_${user.id}`) || "1")
-
-        if (profile) {
-          await notificationSystem.initializeUserNotifications(user.id, profile, loginCount)
+    const channel = supabase
+      .channel(`notificaciones:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notificaciones",
+          filter: `usuario_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotif = mapToDynamic(payload.new as Notificacion)
+          setNotifications((prev) => [newNotif, ...prev])
+          setUnreadCount((prev) => prev + 1)
+          toast(newNotif.title, {
+            description: newNotif.message,
+          })
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          realtimeConnectedRef.current = true
+          if (pollingRef.current) {
+            clearInterval(pollingRef.current)
+            pollingRef.current = null
+          }
+        } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+          realtimeConnectedRef.current = false
+          if (!pollingRef.current) {
+            pollingRef.current = setInterval(() => {
+              loadNotifications()
+            }, 30000)
+          }
         }
+      })
 
-        // Cargar notificaciones
-        await loadNotifications()
-      } else {
-        setNotifications([])
-        setUnreadCount(0)
-        setLoading(false)
+    // Fallback: start polling if no realtime connection after 10s
+    const fallbackTimer = setTimeout(() => {
+      if (!realtimeConnectedRef.current && !pollingRef.current) {
+        pollingRef.current = setInterval(() => {
+          loadNotifications()
+        }, 30000)
+      }
+    }, 10000)
+
+    return () => {
+      channel.unsubscribe()
+      clearTimeout(fallbackTimer)
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
       }
     }
-
-    initializeNotifications()
-
-    // Suscribirse a actualizaciones de notificaciones solo para administradores
-    let unsubscribe = () => {}
-    if (profile?.rol === "Administrador") {
-      unsubscribe = notificationSystem.subscribe((updatedNotifications) => {
-        setNotifications(updatedNotifications)
-        setUnreadCount(updatedNotifications.filter((n) => n.status === "unread").length)
-      })
-    }
-
-    return unsubscribe
-  }, [user?.id, profile, loadNotifications])
-
-  // Modificar el incremento del contador de inicios de sesión para que solo se aplique a administradores
-  useEffect(() => {
-    if (user?.id && profile?.rol === "Administrador") {
-      const currentCount = Number.parseInt(localStorage.getItem(`loginCount_${user.id}`) || "0")
-      const newCount = currentCount + 1
-      localStorage.setItem(`loginCount_${user.id}`, newCount.toString())
-    }
-  }, [user?.id, profile?.rol])
+  }, [user?.id, loadNotifications])
 
   const markAsRead = async (notificationId: string) => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      await notificationSystem.markAsRead(user.id, notificationId)
-      await loadNotifications()
+    if (!user?.id) return
+    const { error } = await database.marcarNotificacionLeida(notificationId)
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId
+            ? { ...n, status: "read" as const, readAt: new Date().toISOString() }
+            : n,
+        ),
+      )
+      setUnreadCount((prev) => Math.max(0, prev - 1))
     }
   }
 
   const dismissNotification = async (notificationId: string) => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      await notificationSystem.dismissNotification(user.id, notificationId)
-      await loadNotifications()
+    if (!user?.id) return
+    const { error } = await database.archivarNotificacion(notificationId)
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, status: "dismissed" as const } : n)),
+      )
+      setUnreadCount((prev) => Math.max(0, prev - 1))
     }
   }
 
   const removeNotification = async (notificationId: string) => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      await notificationSystem.removeNotification(user.id, notificationId)
-      await loadNotifications()
+    if (!user?.id) return
+    const wasUnread = notifications.find((n) => n.id === notificationId)?.status === "unread"
+    const { error } = await database.eliminarNotificacion(notificationId)
+    if (!error) {
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId))
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(0, prev - 1))
+      }
     }
   }
 
   const markAllAsRead = async () => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      await notificationSystem.markAllAsRead(user.id)
-      await loadNotifications()
+    if (!user?.id) return
+    const { error } = await database.marcarTodasNotificacionesLeidas(user.id)
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.status === "unread"
+            ? { ...n, status: "read" as const, readAt: new Date().toISOString() }
+            : n,
+        ),
+      )
+      setUnreadCount(0)
     }
   }
 
   const clearAll = async () => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      await notificationSystem.clearAllNotifications(user.id)
-      await loadNotifications()
+    if (!user?.id) return
+    const { error } = await database.limpiarNotificaciones(user.id)
+    if (!error) {
+      setNotifications([])
+      setUnreadCount(0)
     }
   }
 
   const addCustomNotification = async (
-    type: any,
-    title: string,
-    message: string,
-    options?: any,
+    _type: any,
+    _title: string,
+    _message: string,
+    _options?: any,
   ) => {
-    if (!profile?.rol || profile?.rol !== "Administrador") return
-    if (user?.id) {
-      const result = await notificationSystem.addNotification(
-        user.id,
-        type,
-        title,
-        message,
-        options,
-      )
-      await loadNotifications()
-      return result
-    }
+    console.warn("addCustomNotification is deprecated; use broadcastNotificacion instead")
     return null
   }
 

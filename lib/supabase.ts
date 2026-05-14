@@ -88,3 +88,22 @@ export interface UsoBeneficio {
   usuario_id: string
   fecha_uso: string
 }
+
+export interface Notificacion {
+  id: string
+  usuario_id: string
+  creado_por?: string
+  tipo: "beneficio" | "evento" | "comentario" | "sistema" | "bienvenida"
+  titulo: string
+  mensaje: string
+  icono?: string
+  color?: string
+  action_url?: string
+  action_text?: string
+  prioridad: "baja" | "normal" | "alta"
+  estado: "no_leida" | "leida" | "archivada"
+  leido_en?: string
+  creado_en: string
+  metadata?: Record<string, any>
+  updated_at: string
+}

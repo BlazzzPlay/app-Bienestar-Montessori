@@ -378,6 +378,115 @@ create policy "sugerencias_update_mod"
     exists (select 1 from public.perfiles where id = auth.uid() and rol in ('Administrador', 'Presidente', 'Directorio'))
   );
 
+-- notificaciones
+create table if not exists public.notificaciones (
+  id uuid primary key default uuid_generate_v4(),
+  usuario_id uuid not null references public.perfiles(id) on delete cascade,
+  creado_por uuid references public.perfiles(id) on delete set null,
+  tipo text not null check (tipo in ('beneficio', 'evento', 'comentario', 'sistema', 'bienvenida')),
+  titulo text not null,
+  mensaje text not null,
+  icono text,
+  color text,
+  action_url text,
+  action_text text,
+  prioridad text not null default 'normal' check (prioridad in ('baja', 'normal', 'alta')),
+  estado text not null default 'no_leida' check (estado in ('no_leida', 'leida', 'archivada')),
+  leido_en timestamptz,
+  creado_en timestamptz not null default now(),
+  metadata jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_notificaciones_usuario_creado on public.notificaciones(usuario_id, creado_en desc);
+
+drop trigger if exists trg_notificaciones_updated_at on public.notificaciones;
+create trigger trg_notificaciones_updated_at
+  before update on public.notificaciones
+  for each row execute function public.set_updated_at();
+
+-- RLS: notificaciones
+alter table public.notificaciones enable row level security;
+
+drop policy if exists "notificaciones_select_own" on public.notificaciones;
+create policy "notificaciones_select_own"
+  on public.notificaciones for select
+  to authenticated using (usuario_id = auth.uid());
+
+drop policy if exists "notificaciones_update_own" on public.notificaciones;
+create policy "notificaciones_update_own"
+  on public.notificaciones for update
+  to authenticated using (usuario_id = auth.uid());
+
+drop policy if exists "notificaciones_insert_admin" on public.notificaciones;
+create policy "notificaciones_insert_admin"
+  on public.notificaciones for insert
+  to authenticated with check (
+    exists (select 1 from public.perfiles where id = auth.uid() and rol = 'Administrador')
+  );
+
+drop policy if exists "notificaciones_delete_admin" on public.notificaciones;
+create policy "notificaciones_delete_admin"
+  on public.notificaciones for delete
+  to authenticated using (
+    exists (select 1 from public.perfiles where id = auth.uid() and rol = 'Administrador')
+  );
+
+-- RPC: enviar_notificacion_broadcast
+-- Inserta una notificación por destinatario, con límite de 500 usuarios.
+create or replace function public.enviar_notificacion_broadcast(
+  p_titulo text,
+  p_mensaje text,
+  p_tipo text,
+  p_target_role text default null,
+  p_prioridad text default 'normal',
+  p_icono text default null,
+  p_color text default null,
+  p_action_url text default null,
+  p_action_text text default null,
+  p_metadata jsonb default null
+) returns void
+language plpgsql
+as $$
+declare
+  v_creado_por uuid;
+  v_count integer;
+begin
+  v_creado_por := auth.uid();
+
+  if p_target_role is not null then
+    select count(*) into v_count from public.perfiles where rol = p_target_role;
+    if v_count > 500 then
+      raise exception 'Demasiados destinatarios para el rol %. Máximo 500.', p_target_role;
+    end if;
+
+    insert into public.notificaciones (
+      usuario_id, creado_por, tipo, titulo, mensaje,
+      icono, color, action_url, action_text, prioridad, estado, metadata
+    )
+    select
+      id, v_creado_por, p_tipo, p_titulo, p_mensaje,
+      p_icono, p_color, p_action_url, p_action_text, p_prioridad, 'no_leida', p_metadata
+    from public.perfiles
+    where rol = p_target_role;
+  else
+    select count(*) into v_count from public.perfiles;
+    if v_count > 500 then
+      raise exception 'Demasiados destinatarios. Máximo 500 usuarios para broadcast global.';
+    end if;
+
+    insert into public.notificaciones (
+      usuario_id, creado_por, tipo, titulo, mensaje,
+      icono, color, action_url, action_text, prioridad, estado, metadata
+    )
+    select
+      id, v_creado_por, p_tipo, p_titulo, p_mensaje,
+      p_icono, p_color, p_action_url, p_action_text, p_prioridad, 'no_leida', p_metadata
+    from public.perfiles;
+  end if;
+end;
+$$;
+
 -- 8. STORAGE BUCKETS
 -- --------------------------------------------
 insert into storage.buckets (id, name, public)
@@ -387,3 +496,8 @@ on conflict (id) do nothing;
 insert into storage.buckets (id, name, public)
 values ('beneficios', 'beneficios', true)
 on conflict (id) do nothing;
+
+-- 9. REALTIME
+-- --------------------------------------------
+-- Enable realtime on notificaciones table
+alter publication supabase_realtime add table public.notificaciones;

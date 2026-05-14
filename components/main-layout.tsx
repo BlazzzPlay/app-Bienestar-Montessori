@@ -127,8 +127,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
             {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
 
-          {/* Botón de notificaciones - solo visible para administradores */}
-          {profile && profile.rol === "Administrador" && (
+          {/* Botón de notificaciones - visible para todos los usuarios autenticados */}
+          {profile && (
             <div className="relative">
               <Button
                 variant="ghost"

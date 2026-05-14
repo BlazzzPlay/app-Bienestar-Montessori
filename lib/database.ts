@@ -8,6 +8,7 @@ import type {
   Sugerencia,
   AsistenciaEvento,
   UsoBeneficio,
+  Notificacion,
 } from "./supabase"
 
 export const database = {
@@ -425,5 +426,92 @@ export const database = {
       .select("id", { count: "exact", head: true })
       .eq("usuario_id", usuarioId)
     return { beneficiosUtilizados: count || 0, error }
+  },
+
+  // --- NOTIFICACIONES ---
+
+  async getNotificaciones(usuarioId: string) {
+    const { data, error } = await supabase
+      .from("notificaciones")
+      .select("*")
+      .eq("usuario_id", usuarioId)
+      .order("creado_en", { ascending: false })
+    return { data: (data || []) as Notificacion[], error }
+  },
+
+  async getNotificacionesNoLeidas(usuarioId: string) {
+    const { data, error } = await supabase
+      .from("notificaciones")
+      .select("*")
+      .eq("usuario_id", usuarioId)
+      .eq("estado", "no_leida")
+      .order("creado_en", { ascending: false })
+    return { data: (data || []) as Notificacion[], error }
+  },
+
+  async marcarNotificacionLeida(notificacionId: string) {
+    const { data, error } = await supabase
+      .from("notificaciones")
+      .update({ estado: "leida", leido_en: new Date().toISOString() })
+      .eq("id", notificacionId)
+      .select()
+      .single()
+    return { data: data as Notificacion | null, error }
+  },
+
+  async archivarNotificacion(notificacionId: string) {
+    const { data, error } = await supabase
+      .from("notificaciones")
+      .update({ estado: "archivada" })
+      .eq("id", notificacionId)
+      .select()
+      .single()
+    return { data: data as Notificacion | null, error }
+  },
+
+  async eliminarNotificacion(notificacionId: string) {
+    const { error } = await supabase.from("notificaciones").delete().eq("id", notificacionId)
+    return { error }
+  },
+
+  async marcarTodasNotificacionesLeidas(usuarioId: string) {
+    const { error } = await supabase
+      .from("notificaciones")
+      .update({ estado: "leida", leido_en: new Date().toISOString() })
+      .eq("usuario_id", usuarioId)
+      .eq("estado", "no_leida")
+    return { error }
+  },
+
+  async limpiarNotificaciones(usuarioId: string) {
+    const { error } = await supabase.from("notificaciones").delete().eq("usuario_id", usuarioId)
+    return { error }
+  },
+
+  async broadcastNotificacion(
+    titulo: string,
+    mensaje: string,
+    tipo: string,
+    targetRole?: string | null,
+    prioridad = "normal",
+    icono?: string | null,
+    color?: string | null,
+    actionUrl?: string | null,
+    actionText?: string | null,
+    metadata?: Record<string, any> | null,
+  ) {
+    const { error } = await supabase.rpc("enviar_notificacion_broadcast", {
+      p_titulo: titulo,
+      p_mensaje: mensaje,
+      p_tipo: tipo,
+      p_target_role: targetRole || null,
+      p_prioridad: prioridad,
+      p_icono: icono || null,
+      p_color: color || null,
+      p_action_url: actionUrl || null,
+      p_action_text: actionText || null,
+      p_metadata: metadata ? JSON.stringify(metadata) : null,
+    })
+    return { error }
   },
 }
