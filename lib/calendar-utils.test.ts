@@ -1,19 +1,20 @@
 import { describe, it, expect } from "vitest"
 import { generateGoogleCalendarUrl } from "./calendar-utils"
-import type { Publicacion } from "./supabase"
+import type { Publicacion } from "./pocketbase"
 
 function makeEvent(overrides: Partial<Publicacion> = {}): Publicacion {
   return {
-    id: 1,
+    id: "1",
     titulo: "Evento Test",
     descripcion: "Una descripción",
     fecha_publicacion: "2024-06-15T14:30:00Z",
     categoria: "Evento",
     lugar: "Santiago",
     organizador: "Bienestar",
-    imagen_url: "",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
+    created: "2024-01-01T00:00:00Z",
+    updated: "2024-01-01T00:00:00Z",
+    collectionId: "test",
+    collectionName: "publicaciones",
     ...overrides,
   }
 }

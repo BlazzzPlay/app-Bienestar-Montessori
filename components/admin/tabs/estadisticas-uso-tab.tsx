@@ -4,7 +4,7 @@ import { BarChart3, Gift, TrendingUp } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import type { Beneficio } from "@/lib/supabase"
+import type { Beneficio } from "@/lib/pocketbase"
 
 interface EstadisticasUsoTabProps {
   beneficios: Beneficio[]

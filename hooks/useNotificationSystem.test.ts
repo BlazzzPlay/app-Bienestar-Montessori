@@ -19,17 +19,17 @@ vi.mock("@/lib/database", () => ({
   },
 }))
 
-const mockChannel = vi.hoisted(() => ({
-  on: vi.fn().mockReturnThis(),
-  subscribe: vi.fn().mockReturnThis(),
-  unsubscribe: vi.fn(),
-}))
+// PocketBase realtime mock
+let mockSubscribeCallback: ((e: any) => void) | null = null
+const mockUnsubscribe = vi.fn()
+const mockSubscribe = vi.fn()
 
-vi.mock("@/lib/supabaseClient", () => ({
-  supabase: {
-    channel: vi.fn(() => mockChannel),
-    removeChannel: vi.fn(),
-  },
+vi.mock("@/lib/pocketbase", () => ({
+  createBrowserClient: vi.fn(() => ({
+    collection: vi.fn(() => ({
+      subscribe: mockSubscribe,
+    })),
+  })),
 }))
 
 const mockAuthUser = vi.hoisted(() => ({ id: "user-1" }))
@@ -50,6 +50,12 @@ describe("useNotificationSystem", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers({ shouldAdvanceTime: true })
+    mockSubscribeCallback = null
+    // Default: subscribe resolves successfully
+    mockSubscribe.mockImplementation((_event: string, callback: (e: any) => void) => {
+      mockSubscribeCallback = callback
+      return Promise.resolve(mockUnsubscribe)
+    })
   })
 
   afterEach(() => {
@@ -67,7 +73,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -107,7 +112,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -117,14 +121,14 @@ describe("useNotificationSystem", () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.unreadCount).toBe(1)
 
-    // Extract the realtime callback
-    const onCalls = mockChannel.on.mock.calls
-    const insertCallback = onCalls.find((call: any[]) => call[1]?.event === "INSERT")?.[2]
-    expect(insertCallback).toBeDefined()
+    // PB subscribe callback should have been registered
+    expect(mockSubscribeCallback).toBeDefined()
+    expect(mockSubscribe).toHaveBeenCalledWith("*", expect.any(Function))
 
     act(() => {
-      insertCallback({
-        new: {
+      mockSubscribeCallback!({
+        action: "create",
+        record: {
           id: "n2",
           usuario_id: "user-1",
           titulo: "Nueva",
@@ -133,7 +137,6 @@ describe("useNotificationSystem", () => {
           tipo: "evento",
           prioridad: "alta",
           creado_en: "2024-01-02",
-          updated_at: "2024-01-02",
         },
       })
     })
@@ -141,6 +144,32 @@ describe("useNotificationSystem", () => {
     expect(result.current.notifications).toHaveLength(2)
     expect(result.current.unreadCount).toBe(2)
     expect(mockToast).toHaveBeenCalledWith("Nueva", { description: "Mensaje nuevo" })
+  })
+
+  it("ignores realtime events for other users", async () => {
+    mockGetNotificaciones.mockResolvedValue({ data: [], error: null })
+
+    const { result } = renderHook(() => useNotificationSystem())
+
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      mockSubscribeCallback!({
+        action: "create",
+        record: {
+          id: "n-other",
+          usuario_id: "other-user",
+          titulo: "Not mine",
+          mensaje: "Should be ignored",
+          estado: "no_leida",
+          tipo: "sistema",
+          prioridad: "normal",
+          creado_en: "2024-01-02",
+        },
+      })
+    })
+
+    expect(result.current.notifications).toHaveLength(0)
   })
 
   it("marks a notification as read", async () => {
@@ -154,7 +183,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -186,7 +214,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -218,7 +245,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -247,7 +273,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
       {
         id: "n2",
@@ -258,7 +283,6 @@ describe("useNotificationSystem", () => {
         tipo: "evento",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -288,7 +312,6 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
@@ -306,7 +329,7 @@ describe("useNotificationSystem", () => {
     expect(result.current.unreadCount).toBe(0)
   })
 
-  it("falls back to polling when realtime disconnects", async () => {
+  it("falls back to polling when realtime subscribe fails", async () => {
     const notifs = [
       {
         id: "n1",
@@ -317,16 +340,12 @@ describe("useNotificationSystem", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ]
     mockGetNotificaciones.mockResolvedValue({ data: notifs, error: null })
 
-    // Simulate connection error
-    mockChannel.subscribe.mockImplementation((callback: any) => {
-      if (callback) callback("CHANNEL_ERROR")
-      return mockChannel
-    })
+    // Simulate subscribe failure
+    mockSubscribe.mockRejectedValue(new Error("Realtime unavailable"))
 
     renderHook(() => useNotificationSystem())
     await waitFor(() => expect(mockGetNotificaciones).toHaveBeenCalledTimes(1))
@@ -337,5 +356,23 @@ describe("useNotificationSystem", () => {
     })
 
     await waitFor(() => expect(mockGetNotificaciones).toHaveBeenCalledTimes(2))
+  })
+
+  it("unsubscribes on cleanup", async () => {
+    mockGetNotificaciones.mockResolvedValue({ data: [], error: null })
+
+    const { unmount } = renderHook(() => useNotificationSystem())
+
+    // Wait for effect to register subscribe and resolve the promise
+    await waitFor(() => {
+      expect(mockSubscribe).toHaveBeenCalledWith("*", expect.any(Function))
+    })
+
+    // Give microtasks time to resolve so unsubscribeRef is set
+    await act(async () => {})
+
+    unmount()
+
+    expect(mockUnsubscribe).toHaveBeenCalled()
   })
 })

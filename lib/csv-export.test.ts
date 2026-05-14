@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { exportProfilesToCSV } from "./csv-export"
-import type { Perfil } from "./supabase"
+import type { Perfil } from "./pocketbase"
 
 describe("exportProfilesToCSV", () => {
   let clickMock: ReturnType<typeof vi.fn>
@@ -38,15 +38,17 @@ describe("exportProfilesToCSV", () => {
       {
         id: "1",
         nombre_completo: "Juan Pérez",
-        correo: "juan@test.com",
+        email: "juan@test.com",
         rut: "12345678-9",
         telefono: "+56912345678",
         cargo: "Profesor",
         fecha_ingreso: "2020-03-15",
         es_bienestar: true,
         rol: "Beneficiario",
-        created_at: "2024-01-01",
-        updated_at: "2024-01-01",
+        collectionId: "test",
+        collectionName: "users",
+        created: "2024-01-01T00:00:00Z",
+        updated: "2024-01-01T00:00:00Z",
       },
     ]
 
@@ -66,15 +68,17 @@ describe("exportProfilesToCSV", () => {
       {
         id: "2",
         nombre_completo: 'Pérez, Juan "El Profe"',
-        correo: "juan@test.com",
+        email: "juan@test.com",
         rut: "12345678-9",
         telefono: "+56912345678",
         cargo: "Profesor",
         fecha_ingreso: "2020-03-15",
         es_bienestar: false,
         rol: "Beneficiario",
-        created_at: "2024-01-01",
-        updated_at: "2024-01-01",
+        collectionId: "test",
+        collectionName: "users",
+        created: "2024-01-01T00:00:00Z",
+        updated: "2024-01-01T00:00:00Z",
       },
     ]
 

@@ -12,6 +12,7 @@ import FiltrosBeneficiosModal from "@/components/modals/filtros-beneficios-modal
 import { useRouter } from "next/navigation"
 import { useBeneficios } from "@/hooks/useBeneficios"
 import { getTagColor } from "@/lib/tag-utils"
+import { getFileUrl } from "@/lib/pocketbase"
 
 export default function BeneficiosPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -114,7 +115,10 @@ export default function BeneficiosPage() {
                   {/* Image */}
                   <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                     <img
-                      src={beneficio.foto_local_url || "/placeholder.svg?height=240&width=320"}
+                      src={
+                        getFileUrl(beneficio, beneficio.foto_local) ||
+                        "/placeholder.svg?height=240&width=320"
+                      }
                       alt={beneficio.nombre_empresa}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"

@@ -1,9 +1,14 @@
-import { supabase } from "./supabaseClient"
+import {
+  signIn as pbSignIn,
+  signOut as pbSignOut,
+  getCurrentUser as pbGetCurrentUser,
+  getSession as pbGetSession,
+} from "./pocketbase-auth"
 
 export const auth = {
-  async signIn(email: string) {
-    if (!email) {
-      return { data: null, error: { message: "Email es obligatorio" } }
+  async signIn(email: string, password: string) {
+    if (!email || !password) {
+      return { data: null, error: { message: "Email y contraseña son obligatorios" } }
     }
 
     const emailRegex = /^[^\s@]+@colegiomontessori\.cl$/
@@ -14,67 +19,18 @@ export const auth = {
       }
     }
 
-    const siteUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: siteUrl,
-      },
-    })
-
-    return { data, error }
-  },
-
-  async verifyOtp(email: string, token: string) {
-    if (!email || !token) {
-      return { data: null, error: { message: "Email y código OTP son obligatorios" } }
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: "email",
-    })
-
-    return { data, error }
-  },
-
-  async signInWithGoogle() {
-    const siteUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: siteUrl,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    })
-
-    return { data, error }
+    return pbSignIn(email, password)
   },
 
   async signOut() {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    return pbSignOut()
   },
 
   async getCurrentUser() {
-    const { data, error } = await supabase.auth.getUser()
-    return { user: data?.user || null, error }
+    return pbGetCurrentUser()
   },
 
   async getSession() {
-    const { data, error } = await supabase.auth.getSession()
-    return { session: data?.session || null, error }
+    return pbGetSession()
   },
 }

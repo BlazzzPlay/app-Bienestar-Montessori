@@ -1,4 +1,5 @@
-import { createServiceClient } from "@/lib/supabaseClient"
+import { cookies } from "next/headers"
+import { createServerClient } from "@/lib/pocketbase"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -7,15 +8,24 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const supabase = createServiceClient()
+  const cookieStore = await cookies()
+  const pb = createServerClient(cookieStore.toString())
 
-  const { data } = await supabase
-    .from("publicaciones")
-    .select("titulo,descripcion,imagen_url")
-    .eq("id", id)
-    .single()
+  try {
+    const data = await pb.collection("publicaciones").getOne(id)
+    const imagenUrl = data.imagen ? pb.files.getURL(data, data.imagen) : undefined
 
-  if (!data) {
+    return {
+      title: data.titulo,
+      description: data.descripcion?.slice(0, 160),
+      openGraph: {
+        images: imagenUrl ? [imagenUrl] : undefined,
+      },
+      alternates: {
+        canonical: `/eventos/${id}`,
+      },
+    }
+  } catch {
     return {
       title: "Evento",
       description: "Detalle del evento o noticia del programa de Bienestar Montessori.",
@@ -23,17 +33,6 @@ export async function generateMetadata({
         canonical: `/eventos/${id}`,
       },
     }
-  }
-
-  return {
-    title: data.titulo,
-    description: data.descripcion?.slice(0, 160),
-    openGraph: {
-      images: data.imagen_url ? [data.imagen_url] : undefined,
-    },
-    alternates: {
-      canonical: `/eventos/${id}`,
-    },
   }
 }
 

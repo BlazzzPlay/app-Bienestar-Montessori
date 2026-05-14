@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
-import type { Publicacion } from "@/lib/supabase"
+import type { Publicacion } from "@/lib/pocketbase"
 
 export interface PublicacionConFecha extends Publicacion {
   fecha: Date

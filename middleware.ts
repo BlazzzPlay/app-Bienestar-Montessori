@@ -2,12 +2,9 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-  const cookies = request.cookies
-  const hasAuthCookie = Array.from(cookies.getAll()).some((cookie) =>
-    /^sb-.*-auth-token$/.test(cookie.name),
-  )
+  const pbAuth = request.cookies.get("pb_auth")
 
-  if (!hasAuthCookie) {
+  if (!pbAuth?.value) {
     const returnUrl = encodeURIComponent(request.nextUrl.pathname)
     const loginUrl = new URL(`/login?returnUrl=${returnUrl}`, request.url)
     return NextResponse.redirect(loginUrl)

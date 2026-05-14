@@ -1,118 +1,96 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { auth } from "./auth"
 
-const mockSignInWithOtp = vi.fn()
-const mockVerifyOtp = vi.fn()
-const mockSignOut = vi.fn()
-const mockGetUser = vi.fn()
-const mockGetSession = vi.fn()
+const mockPbSignIn = vi.fn()
+const mockPbSignOut = vi.fn()
+const mockPbGetCurrentUser = vi.fn()
+const mockPbGetSession = vi.fn()
 
-vi.mock("./supabaseClient", () => ({
-  supabase: {
-    auth: {
-      signInWithOtp: (...args: any[]) => mockSignInWithOtp(...args),
-      verifyOtp: (...args: any[]) => mockVerifyOtp(...args),
-      signOut: (...args: any[]) => mockSignOut(...args),
-      getUser: (...args: any[]) => mockGetUser(...args),
-      getSession: (...args: any[]) => mockGetSession(...args),
-    },
-  },
+vi.mock("./pocketbase-auth", () => ({
+  signIn: (...args: any[]) => mockPbSignIn(...args),
+  signOut: (...args: any[]) => mockPbSignOut(...args),
+  getCurrentUser: (...args: any[]) => mockPbGetCurrentUser(...args),
+  getSession: (...args: any[]) => mockPbGetSession(...args),
 }))
 
 describe("auth", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
-    mockSignInWithOtp.mockReset()
-    mockVerifyOtp.mockReset()
-    mockSignOut.mockReset()
-    mockGetUser.mockReset()
-    mockGetSession.mockReset()
+    mockPbSignIn.mockReset()
+    mockPbSignOut.mockReset()
+    mockPbGetCurrentUser.mockReset()
+    mockPbGetSession.mockReset()
   })
 
   describe("signIn", () => {
     it("returns error when email is empty", async () => {
-      const result = await auth.signIn("")
+      const result = await auth.signIn("", "password123")
       expect(result.data).toBeNull()
-      expect(result.error?.message).toBe("Email es obligatorio")
-      expect(mockSignInWithOtp).not.toHaveBeenCalled()
+      expect(result.error?.message).toBe("Email y contraseña son obligatorios")
+      expect(mockPbSignIn).not.toHaveBeenCalled()
+    })
+
+    it("returns error when password is empty", async () => {
+      const result = await auth.signIn("test@colegiomontessori.cl", "")
+      expect(result.data).toBeNull()
+      expect(result.error?.message).toBe("Email y contraseña son obligatorios")
+      expect(mockPbSignIn).not.toHaveBeenCalled()
     })
 
     it("returns error for non-institutional email", async () => {
-      const result = await auth.signIn("test@gmail.com")
+      const result = await auth.signIn("test@gmail.com", "password123")
       expect(result.data).toBeNull()
       expect(result.error?.message).toBe(
         "Debes usar tu correo institucional (@colegiomontessori.cl)",
       )
-      expect(mockSignInWithOtp).not.toHaveBeenCalled()
+      expect(mockPbSignIn).not.toHaveBeenCalled()
     })
 
-    it("calls signInWithOtp for valid institutional email", async () => {
-      mockSignInWithOtp.mockResolvedValue({ data: {}, error: null })
-      const result = await auth.signIn("test@colegiomontessori.cl")
-      expect(mockSignInWithOtp).toHaveBeenCalledWith({
-        email: "test@colegiomontessori.cl",
-        options: { emailRedirectTo: expect.any(String) },
-      })
-      expect(result.error).toBeNull()
-    })
-
-    it("returns error when signInWithOtp fails", async () => {
-      mockSignInWithOtp.mockResolvedValue({ data: null, error: { message: "Rate limit" } })
-      const result = await auth.signIn("test@colegiomontessori.cl")
-      expect(result.data).toBeNull()
-      expect(result.error?.message).toBe("Rate limit")
-    })
-  })
-
-  describe("verifyOtp", () => {
-    it("returns error when email or token is empty", async () => {
-      const result = await auth.verifyOtp("", "123456")
-      expect(result.data).toBeNull()
-      expect(result.error?.message).toBe("Email y código OTP son obligatorios")
-    })
-
-    it("calls verifyOtp with correct params", async () => {
-      mockVerifyOtp.mockResolvedValue({
-        data: { user: { id: "u1" }, session: {} },
+    it("calls pocketbase signIn for valid institutional email", async () => {
+      const fakeRecord = { id: "abc123", email: "test@colegiomontessori.cl" }
+      mockPbSignIn.mockResolvedValue({
+        data: { record: fakeRecord, token: "jwt-token" },
         error: null,
       })
-      const result = await auth.verifyOtp("test@colegiomontessori.cl", "123456")
-      expect(mockVerifyOtp).toHaveBeenCalledWith({
-        email: "test@colegiomontessori.cl",
-        token: "123456",
-        type: "email",
-      })
+
+      const result = await auth.signIn("test@colegiomontessori.cl", "correct-password")
+      expect(mockPbSignIn).toHaveBeenCalledWith("test@colegiomontessori.cl", "correct-password")
+      expect(result.data?.record).toEqual(fakeRecord)
+      expect(result.data?.token).toBe("jwt-token")
       expect(result.error).toBeNull()
     })
 
-    it("returns error when verifyOtp fails", async () => {
-      mockVerifyOtp.mockResolvedValue({ data: null, error: { message: "Token expired" } })
-      const result = await auth.verifyOtp("test@colegiomontessori.cl", "000000")
+    it("returns error when signIn fails", async () => {
+      mockPbSignIn.mockResolvedValue({
+        data: null,
+        error: { message: "Failed to authenticate" },
+      })
+      const result = await auth.signIn("test@colegiomontessori.cl", "wrong-password")
       expect(result.data).toBeNull()
-      expect(result.error?.message).toBe("Token expired")
+      expect(result.error?.message).toBe("Failed to authenticate")
     })
   })
 
   describe("signOut", () => {
-    it("calls supabase signOut", async () => {
-      mockSignOut.mockResolvedValue({ error: null })
+    it("calls pocketbase signOut", async () => {
+      mockPbSignOut.mockResolvedValue({ error: null })
       const result = await auth.signOut()
-      expect(mockSignOut).toHaveBeenCalled()
+      expect(mockPbSignOut).toHaveBeenCalled()
       expect(result.error).toBeNull()
     })
   })
 
   describe("getSession", () => {
     it("returns session when active", async () => {
-      const session = { user: { id: "u1" } }
-      mockGetSession.mockResolvedValue({ data: { session }, error: null })
+      const fakeSession = { isValid: true, record: { id: "u1" } }
+      mockPbGetSession.mockResolvedValue({ session: fakeSession, error: null })
       const result = await auth.getSession()
-      expect(result.session).toEqual(session)
+      expect(result.session).toEqual(fakeSession)
       expect(result.error).toBeNull()
     })
 
     it("returns null when no session", async () => {
-      mockGetSession.mockResolvedValue({ data: { session: null }, error: null })
+      mockPbGetSession.mockResolvedValue({ session: null, error: null })
       const result = await auth.getSession()
       expect(result.session).toBeNull()
       expect(result.error).toBeNull()
@@ -122,14 +100,14 @@ describe("auth", () => {
   describe("getCurrentUser", () => {
     it("returns user when authenticated", async () => {
       const user = { id: "u1", email: "a@b.cl" }
-      mockGetUser.mockResolvedValue({ data: { user }, error: null })
+      mockPbGetCurrentUser.mockResolvedValue({ user, error: null })
       const result = await auth.getCurrentUser()
       expect(result.user).toEqual(user)
       expect(result.error).toBeNull()
     })
 
     it("returns null when not authenticated", async () => {
-      mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+      mockPbGetCurrentUser.mockResolvedValue({ user: null, error: null })
       const result = await auth.getCurrentUser()
       expect(result.user).toBeNull()
       expect(result.error).toBeNull()

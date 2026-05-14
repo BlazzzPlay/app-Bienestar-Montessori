@@ -1,8 +1,8 @@
-import type { Perfil } from "./supabase"
+import type { Perfil } from "./pocketbase"
 
 const PUBLIC_FIELDS: (keyof Perfil)[] = [
   "nombre_completo",
-  "correo",
+  "email",
   "telefono",
   "cargo",
   "fecha_ingreso",
@@ -11,7 +11,7 @@ const PUBLIC_FIELDS: (keyof Perfil)[] = [
 
 const HEADERS: Record<string, string> = {
   nombre_completo: "Nombre",
-  correo: "Correo",
+  email: "Correo",
   telefono: "Teléfono",
   cargo: "Cargo",
   fecha_ingreso: "Años en colegio",

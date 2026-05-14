@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
-import type { Beneficio, ComentarioBeneficio } from "@/lib/supabase"
+import type { Beneficio, ComentarioBeneficio } from "@/lib/pocketbase"
 
 export function useBeneficio(
-  id: number,
+  id: string,
   userId?: string,
   perfil?: { nombre_completo: string; avatar_url?: string },
 ) {

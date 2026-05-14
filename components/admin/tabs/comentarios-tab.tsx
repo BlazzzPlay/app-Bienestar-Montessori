@@ -13,11 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { database } from "@/lib/database"
-import type { ComentarioBeneficio, ComentarioPublicacion } from "@/lib/supabase"
+import type { ComentarioBeneficio, ComentarioPublicacion } from "@/lib/pocketbase"
 import { toast } from "sonner"
 
 interface UnifiedComment {
-  id: number
+  id: string
   contenido: string
   autor: string
   source: "beneficio" | "publicacion"
@@ -33,7 +33,7 @@ interface ComentariosTabProps {
 export default function ComentariosTab({ onModerate }: ComentariosTabProps) {
   const [comments, setComments] = useState<UnifiedComment[]>([])
   const [loading, setLoading] = useState(true)
-  const [processingId, setProcessingId] = useState<number | null>(null)
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
   const loadComments = async () => {
     setLoading(true)

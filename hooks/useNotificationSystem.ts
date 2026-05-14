@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import { supabase } from "@/lib/supabaseClient"
+import { createBrowserClient } from "@/lib/pocketbase"
 import { database } from "@/lib/database"
 import { useAuth } from "./useAuth"
-import type { Notificacion } from "@/lib/supabase"
+import type { Notificacion } from "@/lib/pocketbase"
 
 export interface DynamicNotification {
   id: string
@@ -51,6 +51,7 @@ export function useNotificationSystem() {
   const [loading, setLoading] = useState(true)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const realtimeConnectedRef = useRef(false)
+  const unsubscribeRef = useRef<(() => void) | null>(null)
 
   const loadNotifications = useCallback(async () => {
     if (!user?.id) {
@@ -82,40 +83,37 @@ export function useNotificationSystem() {
     }
 
     loadNotifications()
+    realtimeConnectedRef.current = false
 
-    const channel = supabase
-      .channel(`notificaciones:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notificaciones",
-          filter: `usuario_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotif = mapToDynamic(payload.new as Notificacion)
+    const pb = createBrowserClient()
+
+    // Subscribe to realtime notifications via PocketBase SSE
+    pb.collection("notificaciones")
+      .subscribe("*", (e) => {
+        if (e.action === "create" && e.record?.usuario_id === user.id) {
+          const newNotif = mapToDynamic(e.record as Notificacion)
           setNotifications((prev) => [newNotif, ...prev])
           setUnreadCount((prev) => prev + 1)
           toast(newNotif.title, {
             description: newNotif.message,
           })
-        },
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          realtimeConnectedRef.current = true
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current)
-            pollingRef.current = null
-          }
-        } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
-          realtimeConnectedRef.current = false
-          if (!pollingRef.current) {
-            pollingRef.current = setInterval(() => {
-              loadNotifications()
-            }, 30000)
-          }
+        }
+      })
+      .then((unsub) => {
+        realtimeConnectedRef.current = true
+        unsubscribeRef.current = unsub
+        // Clear polling fallback if active
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current)
+          pollingRef.current = null
+        }
+      })
+      .catch(() => {
+        realtimeConnectedRef.current = false
+        if (!pollingRef.current) {
+          pollingRef.current = setInterval(() => {
+            loadNotifications()
+          }, 30000)
         }
       })
 
@@ -129,7 +127,10 @@ export function useNotificationSystem() {
     }, 10000)
 
     return () => {
-      channel.unsubscribe()
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
       clearTimeout(fallbackTimer)
       if (pollingRef.current) {
         clearInterval(pollingRef.current)

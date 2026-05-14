@@ -22,7 +22,7 @@ import { database } from "@/lib/database"
 import AnalyticsDiagnostic from "@/components/analytics-diagnostic"
 
 interface RecentComment {
-  id: number
+  id: string
   contenido: string
   autor: string
   estado: string
@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
 
   const [recentComments, setRecentComments] = useState<RecentComment[]>([])
   const [recentSuggestions, setRecentSuggestions] = useState<
-    { id: number; contenido: string; fecha: string; leido: boolean }[]
+    { id: string; contenido: string; fecha: string; leido: boolean }[]
   >([])
   const [recentSignups, setRecentSignups] = useState<RecentSignup[]>([])
   const [activityLoading, setActivityLoading] = useState(true)

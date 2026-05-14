@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
-import type { Perfil } from "@/lib/supabase"
+import type { Perfil } from "@/lib/pocketbase"
 
 export function useDirectorio() {
   const [data, setData] = useState<Perfil[]>([])

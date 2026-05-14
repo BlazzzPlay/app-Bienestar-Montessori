@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
 import MainLayout from "@/components/main-layout"
 import { useDirectorio } from "@/hooks/useDirectorio"
-import type { Perfil } from "@/lib/supabase"
+import { getFileUrl, type Perfil } from "@/lib/pocketbase"
 
 const ROLE_COLORS: Record<string, string> = {
   Administrador: "bg-destructive/10 text-destructive border-destructive/20",
@@ -165,7 +165,7 @@ function PersonaCard({ persona }: { persona: Perfil }) {
       <CardContent className="p-3 flex items-center gap-3">
         <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
           <AvatarImage
-            src={persona.avatar_url || "/placeholder.svg"}
+            src={getFileUrl(persona, persona.avatar) || "/placeholder.svg"}
             alt={persona.nombre_completo}
           />
           <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">

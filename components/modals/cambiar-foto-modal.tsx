@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import { storage } from "@/lib/storage"
-import { database } from "@/lib/database"
 import { validateImageFile, validateImageDimensions } from "@/lib/image-utils"
 
 interface CambiarFotoModalProps {
@@ -54,7 +53,7 @@ export default function CambiarFotoModal({
   const [success, setSuccess] = useState(false)
   const [validationResult, setValidationResult] = useState<FileValidationResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
 
   const validateSelectedFile = async (file: File): Promise<FileValidationResult> => {
     const warnings: string[] = []
@@ -125,7 +124,7 @@ export default function CambiarFotoModal({
   }
 
   const handleUpload = async () => {
-    if (!selectedFile || !profile) return
+    if (!selectedFile || !user) return
 
     setIsLoading(true)
     setError("")
@@ -142,7 +141,8 @@ export default function CambiarFotoModal({
         })
       }, 200)
 
-      const result = await storage.uploadAvatar(selectedFile, profile.id)
+      // PocketBase handles the file upload directly via pb.collection("users").update
+      const result = await storage.uploadAvatar(selectedFile, user.id)
 
       clearInterval(progressInterval)
       setUploadProgress(100)
@@ -151,9 +151,6 @@ export default function CambiarFotoModal({
         setError(result.error.message || "Error al subir la imagen")
         return
       }
-
-      // Actualizar el perfil con la nueva URL
-      await database.updateProfile(profile.id, { avatar_url: result.data!.url })
 
       setSuccess(true)
       onSuccess?.()

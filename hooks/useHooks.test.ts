@@ -1,34 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { renderHook, waitFor } from "@testing-library/react"
 
-// Mock Supabase client first (before any imports that use it)
-vi.mock("@/lib/supabaseClient", () => ({
-  supabase: {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    single: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi
-        .fn()
-        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-      signInWithOtp: vi.fn(),
-      verifyOtp: vi.fn(),
-      signOut: vi.fn(),
-    },
-    storage: {
-      from: vi.fn().mockReturnValue({
-        upload: vi.fn(),
-        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: "" } }),
-      }),
-    },
-  },
-}))
-
 // Mock database module (hoisted for vi.mock compatibility)
 const {
   mockGetBeneficios,

@@ -131,6 +131,9 @@ importers:
       next-themes:
         specifier: ^0.4.4
         version: 0.4.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      pocketbase:
+        specifier: 0.22.0
+        version: 0.22.0
       react:
         specifier: ^19
         version: 19.0.0
@@ -4033,6 +4036,9 @@ packages:
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
+
+  pocketbase@0.22.0:
+    resolution: {integrity: sha512-jhP0Dcf2Z/4q+SNxqpgV+SJWLZeU0rOJA4TKMxwU7X2olFSBr0jhLu+G6Pc+RIQ40IYrC3WMGwbASPrK6rxQOw==}
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -8738,6 +8744,8 @@ snapshots:
   pify@2.3.0: {}
 
   pirates@4.0.7: {}
+
+  pocketbase@0.22.0: {}
 
   possible-typed-array-names@1.1.0: {}
 

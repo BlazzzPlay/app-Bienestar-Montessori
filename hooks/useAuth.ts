@@ -1,10 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import type { Perfil } from "@/lib/supabase"
-import { auth } from "@/lib/auth"
+import type { Perfil } from "@/lib/pocketbase"
 import { database } from "@/lib/database"
-import { supabase } from "@/lib/supabaseClient"
+import { createBrowserClient } from "@/lib/pocketbase"
+import {
+  signIn as pbSignIn,
+  signOut as pbSignOut,
+  getCurrentUser as pbGetCurrentUser,
+  getSession as pbGetSession,
+} from "@/lib/pocketbase-auth"
 
 export function useAuth() {
   const [user, setUser] = useState<any>(null)
@@ -15,14 +20,19 @@ export function useAuth() {
   useEffect(() => {
     let initialCheckDone = false
 
+    const pb = createBrowserClient()
+
     // 1. Get initial session (handles hash fragment redirects)
     const getInitialSession = async () => {
-      const { session } = await auth.getSession()
+      const { session } = await pbGetSession()
 
-      if (session?.user) {
-        setUser(session.user)
-        const { data: profileData } = await database.getProfile(session.user.id)
-        setProfile(profileData)
+      if (session?.isValid) {
+        const { user: currentUser } = await pbGetCurrentUser()
+        setUser(currentUser)
+        if (currentUser?.id) {
+          const { data: profileData } = await database.getProfile(currentUser.id)
+          setProfile(profileData as Perfil | null)
+        }
       }
 
       initialCheckDone = true
@@ -31,12 +41,15 @@ export function useAuth() {
 
     getInitialSession()
 
-    // 2. Listen for auth state changes (login, logout, hash processing)
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        const { data: profileData } = await database.getProfile(session.user.id)
-        setProfile(profileData)
+    // 2. Listen for auth state changes (login, logout)
+    const unsubscribe = pb.authStore.onChange((_token, record) => {
+      if (record) {
+        setUser(record)
+        if (record.id) {
+          database.getProfile(record.id).then(({ data: profileData }) => {
+            setProfile(profileData as Perfil | null)
+          })
+        }
       } else {
         setUser(null)
         setProfile(null)
@@ -49,11 +62,11 @@ export function useAuth() {
     })
 
     return () => {
-      listener.subscription.unsubscribe()
+      unsubscribe()
     }
   }, [])
 
-  const signIn = async (email: string) => {
+  const signIn = async (email: string, password: string) => {
     setAuthError(null)
 
     try {
@@ -69,7 +82,7 @@ export function useAuth() {
         return { data: null, error }
       }
 
-      const { data, error } = await auth.signIn(email)
+      const { data, error } = await pbSignIn(email, password)
 
       if (error) {
         setAuthError(error.message)
@@ -84,47 +97,9 @@ export function useAuth() {
     }
   }
 
-  const verifyOtp = async (email: string, token: string) => {
-    setAuthError(null)
-
-    try {
-      const { data, error } = await auth.verifyOtp(email, token)
-
-      if (data && !error) {
-        setUser(data.user)
-        if (data.user?.id) {
-          const { data: profileData, error: profileError } = await database.getProfile(data.user.id)
-          if (profileError) {
-            console.error("Error loading profile:", profileError)
-            setAuthError("Error al cargar el perfil del usuario")
-            return { data: null, error: { message: "Error al cargar el perfil del usuario" } }
-          }
-          setProfile(profileData)
-        }
-        setAuthError(null)
-      } else if (error) {
-        setAuthError(error.message)
-      }
-
-      return { data, error }
-    } catch (error) {
-      console.error("Unexpected error during OTP verification:", error)
-      const errorMessage = "Error al verificar el código"
-      setAuthError(errorMessage)
-      return { data: null, error: { message: errorMessage } }
-    }
-  }
-
-  const signInWithGoogle = async () => {
-    setAuthError(null)
-    const { data, error } = await auth.signInWithGoogle()
-    if (error) setAuthError(error.message)
-    return { data, error }
-  }
-
   const signOut = async () => {
     try {
-      const { error } = await auth.signOut()
+      const { error } = await pbSignOut()
       setUser(null)
       setProfile(null)
       setAuthError(null)
@@ -138,14 +113,14 @@ export function useAuth() {
   const updatePassword = async (_password: string) => {
     return {
       data: null,
-      error: { message: "Cambio de contraseña no disponible con autenticación OTP" },
+      error: { message: "Cambio de contraseña no disponible en esta versión" },
     }
   }
 
   const refreshProfile = async () => {
     if (user) {
       const { data: profileData } = await database.getProfile(user.id)
-      setProfile(profileData)
+      setProfile(profileData as Perfil | null)
     }
   }
 
@@ -158,8 +133,8 @@ export function useAuth() {
   const validateSession = async () => {
     if (!user) return false
     try {
-      const { session, error } = await auth.getSession()
-      if (error || !session) {
+      const { session, error } = await pbGetSession()
+      if (error || !session?.isValid) {
         setUser(null)
         setProfile(null)
         return false
@@ -179,8 +154,6 @@ export function useAuth() {
     loading,
     authError,
     signIn,
-    verifyOtp,
-    signInWithGoogle,
     signOut,
     updatePassword,
     refreshProfile,

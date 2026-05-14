@@ -9,6 +9,7 @@ import MainLayout from "@/components/main-layout"
 import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfile } from "@/hooks/useProfile"
+import { getFileUrl } from "@/lib/pocketbase"
 import {
   Sparkles,
   Heart,
@@ -126,9 +127,9 @@ export default function PerfilPage() {
             {/* Avatar - overlapping */}
             <div className="flex justify-center -mt-14">
               <div className="relative">
-                {profile.avatar_url ? (
+                {getFileUrl(profile, profile.avatar) ? (
                   <img
-                    src={profile.avatar_url}
+                    src={getFileUrl(profile, profile.avatar)}
                     alt={profile.nombre_completo}
                     className="h-28 w-28 rounded-2xl object-cover border-4 border-background shadow-xl"
                     onError={(e) => {
@@ -256,7 +257,7 @@ export default function PerfilPage() {
       <CambiarFotoModal
         isOpen={showCambiarFoto}
         onClose={() => setShowCambiarFoto(false)}
-        currentAvatar={profile.avatar_url}
+        currentAvatar={getFileUrl(profile, profile.avatar)}
         userName={profile.nombre_completo}
         onSuccess={refreshProfile}
       />

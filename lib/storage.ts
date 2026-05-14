@@ -1,67 +1,75 @@
-import { supabase } from "./supabaseClient"
-
-function getExt(file: File) {
-  const parts = file.name.split(".")
-  return parts.length > 1 ? parts.pop()?.toLowerCase() || "jpg" : "jpg"
-}
+import {
+  uploadAvatar as pbUploadAvatar,
+  uploadBeneficioImage as pbUploadBeneficioImage,
+  getFileUrl as pbGetFileUrl,
+} from "./pocketbase-storage"
+import { createBrowserClient } from "./pocketbase"
 
 export const storage = {
+  /**
+   * Upload an avatar for the given user.
+   *
+   * Delegates to pocketbase-storage which calls `pb.collection("users").update()`.
+   * The avatar is stored as a PB file field on the user record.
+   *
+   * Returns `{ data: { path, url }, error }` — same contract as the old Supabase module.
+   */
   async uploadAvatar(file: File, userId: string) {
-    try {
-      const ext = getExt(file)
-      const path = `${userId}/avatar.${ext}`
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) {
-        return { data: null, error: { message: uploadError.message } }
-      }
-
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path)
-      return { data: { path, url: data.publicUrl }, error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error?.message || "Error al subir avatar" } }
+    const result = await pbUploadAvatar(userId, file)
+    if (result.error) return result
+    return {
+      data: { path: `${userId}/avatar`, url: result.data?.url ?? "" },
+      error: null,
     }
   },
 
+  /**
+   * Get the avatar URL for a user.
+   *
+   * Fetches the user record from PB and returns the file URL for the `avatar` field.
+   * Returns `null` if the user has no avatar.
+   */
   async getAvatarUrl(userId: string) {
     try {
-      const { data: listData } = await supabase.storage.from("avatars").list(userId, { limit: 1 })
-
-      const file = listData?.[0]
-      if (!file) return null
-
-      const { data } = supabase.storage.from("avatars").getPublicUrl(`${userId}/${file.name}`)
-      return data.publicUrl
+      const pb = createBrowserClient()
+      const record = await pb.collection("users").getOne(userId)
+      if (!record.avatar) return null
+      return pbGetFileUrl(record, record.avatar)
     } catch {
       return null
     }
   },
 
+  /**
+   * Upload an image for a beneficio record.
+   *
+   * Delegates to pocketbase-storage which calls `pb.collection("beneficios").update()`.
+   */
   async uploadBeneficioImage(file: File, beneficioId: number) {
-    try {
-      const ext = getExt(file)
-      const path = `${beneficioId}/cover.${ext}`
-
-      const { error: uploadError } = await supabase.storage
-        .from("beneficios")
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) {
-        return { data: null, error: { message: uploadError.message } }
-      }
-
-      const { data } = supabase.storage.from("beneficios").getPublicUrl(path)
-      return { data: { path, url: data.publicUrl }, error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error?.message || "Error al subir imagen" } }
+    const result = await pbUploadBeneficioImage(String(beneficioId), file)
+    if (result.error) return result
+    return {
+      data: { path: `${beneficioId}/cover`, url: result.data?.url ?? "" },
+      error: null,
     }
   },
 
-  async deleteFile(bucket: string, path: string) {
-    const { error } = await supabase.storage.from(bucket).remove([path])
-    return { data: !error, error }
+  /**
+   * Delete a file by bucket and path.
+   *
+   * NOTE: PocketBase does not use Supabase's bucket/path model.
+   * Files are tied to collection record fields. To delete a file in PB,
+   * use `pocketbase-storage.deleteFile(collection, recordId, field)` directly.
+   *
+   * This method returns an error to prevent silent no-ops.
+   */
+  async deleteFile(_bucket: string, _path: string) {
+    return {
+      data: false,
+      error: {
+        message:
+          "deleteFile no está disponible. Usa pocketbase-storage.deleteFile(collection, recordId, field) directamente.",
+      },
+    }
   },
 }

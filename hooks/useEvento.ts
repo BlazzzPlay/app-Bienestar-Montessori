@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
-import type { Publicacion, ComentarioPublicacion } from "@/lib/supabase"
+import type { Publicacion, ComentarioPublicacion } from "@/lib/pocketbase"
 
 export function useEvento(id: string, userId?: string) {
   const [event, setEvent] = useState<Publicacion | null>(null)
@@ -19,8 +19,8 @@ export function useEvento(id: string, userId?: string) {
     setError(null)
     try {
       const [eventResult, commentsResult] = await Promise.all([
-        database.getPublicacion(Number(id)),
-        database.getComentariosPublicacion(Number(id)),
+        database.getPublicacion(id),
+        database.getComentariosPublicacion(id),
       ])
       if (eventResult.error) throw eventResult.error
       if (commentsResult.error) throw commentsResult.error
@@ -36,7 +36,7 @@ export function useEvento(id: string, userId?: string) {
   const checkAttendance = useCallback(async () => {
     if (!userId || !id) return
     try {
-      const { data } = await database.getAsistenciaEvento(Number(id), userId)
+      const { data } = await database.getAsistenciaEvento(id, userId)
       setIsAttending(!!data?.confirmado)
     } catch {
       setIsAttending(false)
@@ -54,7 +54,7 @@ export function useEvento(id: string, userId?: string) {
   const submitComment = useCallback(
     async (contenido: string, usuarioId: string) => {
       const { data, error } = await database.createComentarioPublicacion({
-        publicacion_id: Number(id),
+        publicacion_id: id,
         usuario_id: usuarioId,
         contenido,
       })
@@ -69,7 +69,7 @@ export function useEvento(id: string, userId?: string) {
     if (!userId) throw new Error("Usuario no autenticado")
     setAttendanceLoading(true)
     try {
-      const { error } = await database.confirmarAsistenciaEvento(Number(id), userId)
+      const { error } = await database.confirmarAsistenciaEvento(id, userId)
       if (error) throw error
       setIsAttending(true)
     } finally {

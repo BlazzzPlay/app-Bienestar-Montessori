@@ -1,4 +1,4 @@
-import type { Publicacion } from "./supabase"
+import type { Publicacion } from "./pocketbase"
 
 function toGoogleCalendarUtc(dateStr: string): string {
   const d = new Date(dateStr)

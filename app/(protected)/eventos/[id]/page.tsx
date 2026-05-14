@@ -28,6 +28,7 @@ import Link from "next/link"
 import { useEvento } from "@/hooks/useEvento"
 import { useAuth } from "@/hooks/useAuth"
 import { database } from "@/lib/database"
+import { getFileUrl } from "@/lib/pocketbase"
 import { generateGoogleCalendarUrl } from "@/lib/calendar-utils"
 
 const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -75,7 +76,7 @@ export default function DetalleEventoPage() {
     }
   }
 
-  const handleModeracion = async (comentarioId: number, accion: "aprobar" | "rechazar") => {
+  const handleModeracion = async (comentarioId: string, accion: "aprobar" | "rechazar") => {
     await database.moderarComentarioPublicacion(
       comentarioId,
       accion === "aprobar" ? "aprobado" : "archivado",
@@ -176,7 +177,7 @@ export default function DetalleEventoPage() {
         {/* ── Hero Image ── */}
         <div className="aspect-[16/9] sm:aspect-[2/1] bg-muted">
           <img
-            src={event.imagen_url || "/placeholder.svg?height=400&width=800"}
+            src={getFileUrl(event, event.imagen) || "/placeholder.svg?height=400&width=800"}
             alt={event.titulo}
             className="w-full h-full object-cover"
           />

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { database } from "@/lib/database"
 import { exportProfilesToCSV } from "@/lib/csv-export"
-import type { Perfil, Beneficio, Publicacion } from "@/lib/supabase"
+import type { Perfil, Beneficio, Publicacion } from "@/lib/pocketbase"
 import { toast } from "sonner"
 
 interface EstadisticasGenerales {
@@ -119,7 +119,7 @@ export function useAdmin() {
 
   const approveComment = async (
     table: "comentarios_beneficios" | "comentarios_publicaciones",
-    id: number,
+    id: string,
   ) => {
     const { error } = await database.approveComment(table, id)
     if (error) {
@@ -133,7 +133,7 @@ export function useAdmin() {
 
   const archiveComment = async (
     table: "comentarios_beneficios" | "comentarios_publicaciones",
-    id: number,
+    id: string,
   ) => {
     const { error } = await database.archiveComment(table, id)
     if (error) {

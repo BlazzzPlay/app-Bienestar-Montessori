@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useBeneficio } from "@/hooks/useBeneficio"
 import { useAuth } from "@/hooks/useAuth"
 import { getTagColor } from "@/lib/tag-utils"
+import { getFileUrl } from "@/lib/pocketbase"
 
 export default function DetalleBeneficioPage() {
   const { id } = useParams()
@@ -30,12 +31,12 @@ export default function DetalleBeneficioPage() {
     registerUse,
     submitComment,
   } = useBeneficio(
-    Number(id),
+    id as string,
     user?.id,
     profile
       ? {
           nombre_completo: profile.nombre_completo,
-          avatar_url: profile.avatar_url,
+          avatar_url: getFileUrl(profile, profile.avatar),
         }
       : undefined,
   )
@@ -130,7 +131,9 @@ export default function DetalleBeneficioPage() {
         {/* ── Hero Image ── */}
         <div className="aspect-[16/9] sm:aspect-[2/1] bg-muted">
           <img
-            src={beneficio.foto_local_url || "/placeholder.svg?height=400&width=800"}
+            src={
+              getFileUrl(beneficio, beneficio.foto_local) || "/placeholder.svg?height=400&width=800"
+            }
             alt={beneficio.nombre_empresa}
             className="w-full h-full object-cover"
           />

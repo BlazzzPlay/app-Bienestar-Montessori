@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
-import type { Beneficio } from "@/lib/supabase"
+import type { Beneficio } from "@/lib/pocketbase"
 
 export function useBeneficios() {
   const [data, setData] = useState<Beneficio[]>([])

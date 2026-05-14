@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
-import { supabase } from "@/lib/supabaseClient"
+import { createBrowserClient } from "@/lib/pocketbase"
 
 interface CambiarContrasenaModalProps {
   isOpen: boolean
@@ -83,10 +83,10 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
       return
     }
 
-    // Validar que el nuevo RUT sea diferente al actual (si es posible obtenerlo)
+    // Validar que el nuevo RUT sea diferente al actual
     if (
       nuevaContrasena.replace(/[.-]/g, "").toLowerCase() ===
-      (user?.user_metadata?.current_rut || "").replace(/[.-]/g, "").toLowerCase()
+      (user?.rut || "").replace(/[.-]/g, "").toLowerCase()
     ) {
       setError("El nuevo RUT debe ser diferente al actual")
       return
@@ -95,21 +95,17 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { rut: nuevaContrasena.replace(/[.-]/g, "").toLowerCase() },
-      })
+      const pb = createBrowserClient()
+      const cleanedRut = nuevaContrasena.replace(/[.-]/g, "").toLowerCase()
+      await pb.collection("users").update(user.id, { rut: cleanedRut })
 
-      if (error) {
-        setError(error.message || "Error al cambiar el RUT. Inténtalo nuevamente.")
-      } else {
-        setSuccess(true)
-        setTimeout(() => {
-          handleClose()
-        }, 2000)
-      }
-    } catch (error) {
-      console.error("Error changing password:", error)
-      setError("Error inesperado. Inténtalo nuevamente.")
+      setSuccess(true)
+      setTimeout(() => {
+        handleClose()
+      }, 2000)
+    } catch (error: any) {
+      console.error("Error changing RUT:", error)
+      setError(error?.message || "Error inesperado. Inténtalo nuevamente.")
     } finally {
       setIsLoading(false)
     }

@@ -1,78 +1,213 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { database } from "./database"
 
-const mockFrom = vi.fn()
-const mockRpc = vi.fn()
+// Mock pocketbase module used by database.ts via createBrowserClient()
+const mockGetOne = vi.fn()
+const mockGetFullList = vi.fn()
+const mockGetList = vi.fn()
+const mockGetFirstListItem = vi.fn()
+const mockCreate = vi.fn()
+const mockUpdate = vi.fn()
+const mockDelete = vi.fn()
 
-vi.mock("./supabaseClient", () => ({
-  supabase: {
-    from: (...args: any[]) => mockFrom(...args),
-    rpc: (...args: any[]) => mockRpc(...args),
-  },
-}))
-
-function createChain(result: { data?: any; error?: any }) {
-  const chain: any = {
-    select: vi.fn(() => chain),
-    insert: vi.fn(() => chain),
-    update: vi.fn(() => chain),
-    eq: vi.fn(() => chain),
-    order: vi.fn(() => chain),
-    single: vi.fn(() => Promise.resolve(result)),
-    upsert: vi.fn(() => chain),
-  }
-  chain.then = (onFulfilled: any, onRejected: any) =>
-    Promise.resolve(result).then(onFulfilled, onRejected)
-  return chain
+const mockPbInstance = {
+  collection: vi.fn(() => ({
+    getOne: mockGetOne,
+    getFullList: mockGetFullList,
+    getList: mockGetList,
+    getFirstListItem: mockGetFirstListItem,
+    create: mockCreate,
+    update: mockUpdate,
+    delete: mockDelete,
+  })),
 }
+
+vi.mock("./pocketbase", () => ({
+  createBrowserClient: vi.fn(() => mockPbInstance),
+}))
 
 describe("database", () => {
   beforeEach(() => {
-    mockFrom.mockReset()
-    mockRpc.mockReset()
+    vi.clearAllMocks()
   })
 
   describe("getProfile", () => {
-    it("returns profile data", async () => {
-      const profile = { id: "u1", nombre_completo: "Test" }
-      mockFrom.mockReturnValue(createChain({ data: profile, error: null }))
+    it("returns profile data from users collection", async () => {
+      const profile = { id: "u1", nombre_completo: "Test", email: "test@test.cl" }
+      mockGetOne.mockResolvedValue(profile)
 
       const { data, error } = await database.getProfile("u1")
       expect(data).toEqual(profile)
       expect(error).toBeNull()
+      expect(mockPbInstance.collection).toHaveBeenCalledWith("users")
+      expect(mockGetOne).toHaveBeenCalledWith("u1")
     })
   })
 
   describe("getAllProfiles", () => {
-    it("returns ordered profiles", async () => {
+    it("returns ordered profiles from users collection", async () => {
       const profiles = [
         { id: "u1", nombre_completo: "A" },
         { id: "u2", nombre_completo: "B" },
       ]
-      mockFrom.mockReturnValue(createChain({ data: profiles, error: null }))
+      mockGetFullList.mockResolvedValue(profiles)
 
       const { data, error } = await database.getAllProfiles()
       expect(data).toEqual(profiles)
       expect(error).toBeNull()
+      expect(mockGetFullList).toHaveBeenCalledWith({ sort: "orden_directorio,nombre_completo" })
     })
   })
 
   describe("getBeneficios", () => {
-    it("returns beneficios ordered by created_at desc", async () => {
-      const beneficios = [{ id: 1, nombre_empresa: "Test" }]
-      mockFrom.mockReturnValue(createChain({ data: beneficios, error: null }))
+    it("returns beneficios ordered by created desc", async () => {
+      const beneficios = [{ id: "1", nombre_empresa: "Test", contador_usos: 0 }]
+      mockGetFullList.mockResolvedValue(beneficios)
 
       const { data, error } = await database.getBeneficios()
       expect(data).toEqual(beneficios)
       expect(error).toBeNull()
+      expect(mockGetFullList).toHaveBeenCalledWith({ sort: "-created" })
+    })
+  })
+
+  describe("createBeneficio", () => {
+    it("creates beneficio with contador_usos=0", async () => {
+      const input = {
+        nombre_empresa: "Test",
+        descripcion_corta: "Desc",
+        contador_usos: 0,
+        etiquetas: [],
+      }
+      const created = { id: "1", ...input }
+      mockCreate.mockResolvedValue(created)
+
+      const { data, error } = await database.createBeneficio(input as any)
+      expect(data).toEqual(created)
+      expect(error).toBeNull()
+      expect(mockCreate).toHaveBeenCalledWith({ ...input, contador_usos: 0 })
+    })
+  })
+
+  describe("getUsoBeneficio", () => {
+    it("returns uso row when found", async () => {
+      const uso = { id: "1", beneficio_id: "1", usuario_id: "u1", fecha_uso: "2024-01-01" }
+      mockGetFirstListItem.mockResolvedValue(uso)
+
+      const { data, error } = await database.getUsoBeneficio("1", "u1")
+      expect(data).toEqual(uso)
+      expect(error).toBeNull()
+    })
+
+    it("returns null when no uso found", async () => {
+      mockGetFirstListItem.mockRejectedValue(new Error("Not found"))
+
+      const { data, error } = await database.getUsoBeneficio("1", "u1")
+      expect(data).toBeNull()
+      expect(error).toBeDefined()
+    })
+  })
+
+  describe("registrarUsoBeneficio", () => {
+    it("creates uso, increments counter, and returns beneficio", async () => {
+      const beneficio = { id: "1", contador_usos: 5 }
+      mockCreate.mockResolvedValue({ id: "new-uso" })
+      mockUpdate.mockResolvedValue(beneficio)
+      mockGetOne.mockResolvedValue(beneficio)
+
+      const { data, error } = await database.registrarUsoBeneficio("1", "u1")
+      expect(data).toEqual(beneficio)
+      expect(error).toBeNull()
+      expect(mockCreate).toHaveBeenCalledWith({
+        beneficio_id: "1",
+        usuario_id: "u1",
+      })
+      expect(mockUpdate).toHaveBeenCalledWith("1", { "contador_usos+": 1 })
+    })
+  })
+
+  describe("getPublicaciones", () => {
+    it("filters by categoria when provided", async () => {
+      mockGetFullList.mockResolvedValue([])
+      await database.getPublicaciones("Evento")
+      expect(mockGetFullList).toHaveBeenCalledWith({
+        sort: "-fecha_publicacion",
+        filter: 'categoria="Evento"',
+      })
+    })
+
+    it("returns all when no categoria", async () => {
+      mockGetFullList.mockResolvedValue([])
+      await database.getPublicaciones()
+      expect(mockGetFullList).toHaveBeenCalledWith({
+        sort: "-fecha_publicacion",
+        filter: "",
+      })
+    })
+  })
+
+  describe("confirmarAsistenciaEvento", () => {
+    it("creates asistencia on success", async () => {
+      mockCreate.mockResolvedValue({ id: "1" })
+      const { data, error } = await database.confirmarAsistenciaEvento("1", "u1")
+      expect(data).toBe(true)
+      expect(error).toBeNull()
+      expect(mockCreate).toHaveBeenCalledWith({
+        publicacion_id: "1",
+        usuario_id: "u1",
+        confirmado: true,
+      })
+    })
+
+    it("returns true even on duplicate (catch-and-return-true)", async () => {
+      mockCreate.mockRejectedValue(new Error("duplicate"))
+      const { data, error } = await database.confirmarAsistenciaEvento("1", "u1")
+      expect(data).toBe(true)
+      expect(error).toBeNull()
+    })
+  })
+
+  describe("getComentariosBeneficio", () => {
+    it("uses expand and normalizes perfiles from expand.usuario_id", async () => {
+      const items = [
+        {
+          id: "1",
+          contenido: "Great!",
+          usuario_id: "u1",
+          estado: "aprobado",
+          fecha_creacion: "2024-01-01",
+          expand: {
+            usuario_id: { nombre_completo: "Juan", avatar: "avatar.jpg" },
+          },
+        },
+      ]
+      mockGetFullList.mockResolvedValue(items)
+
+      const { data, error } = await database.getComentariosBeneficio("1")
+      expect(error).toBeNull()
+      expect(data).toHaveLength(1)
+      expect(data![0].perfiles?.nombre_completo).toBe("Juan")
+      expect(data![0].perfiles?.avatar_url).toBe("avatar.jpg")
+      expect(mockGetFullList).toHaveBeenCalledWith({
+        filter: 'beneficio_id="1" && estado="aprobado"',
+        expand: "usuario_id",
+        sort: "-fecha_creacion",
+      })
+    })
+
+    it("includes pending comments when incluirPendientes=true", async () => {
+      mockGetFullList.mockResolvedValue([])
+      await database.getComentariosBeneficio("1", true)
+      expect(mockGetFullList).toHaveBeenCalledWith(
+        expect.objectContaining({ filter: 'beneficio_id="1"' }),
+      )
     })
   })
 
   describe("createSugerencia", () => {
-    it("inserts sugerencia and returns it", async () => {
-      const sugerencia = { id: 1, contenido: "Test", fecha_creacion: "2024-01-01", leido: false }
-      const chain = createChain({ data: sugerencia, error: null })
-      mockFrom.mockReturnValue(chain)
+    it("creates sugerencia", async () => {
+      const sugerencia = { id: "1", contenido: "Test", fecha_creacion: "2024-01-01", leido: false }
+      mockCreate.mockResolvedValue(sugerencia)
 
       const { data, error } = await database.createSugerencia("Test")
       expect(data).toEqual(sugerencia)
@@ -80,56 +215,8 @@ describe("database", () => {
     })
   })
 
-  describe("getUsoBeneficio", () => {
-    it("returns uso row when found", async () => {
-      const uso = { id: 1, beneficio_id: 1, usuario_id: "u1", fecha_uso: "2024-01-01" }
-      mockFrom.mockReturnValue(createChain({ data: uso, error: null }))
-
-      const { data, error } = await database.getUsoBeneficio(1, "u1")
-      expect(data).toEqual(uso)
-      expect(error).toBeNull()
-    })
-
-    it("returns null when no uso found", async () => {
-      mockFrom.mockReturnValue(createChain({ data: null, error: { message: "No rows found" } }))
-
-      const { data, error } = await database.getUsoBeneficio(1, "u1")
-      expect(data).toBeNull()
-      expect(error).toBeDefined()
-    })
-  })
-
-  describe("registrarUsoBeneficio", () => {
-    it("calls RPC with usuarioId and returns updated beneficio", async () => {
-      const beneficio = { id: 1, contador_usos: 5 }
-      mockRpc.mockResolvedValue({ data: null, error: null })
-      const chain = createChain({ data: beneficio, error: null })
-      mockFrom.mockReturnValue(chain)
-
-      const { data, error } = await database.registrarUsoBeneficio(1, "u1")
-      expect(data).toEqual(beneficio)
-      expect(error).toBeNull()
-      expect(mockRpc).toHaveBeenCalledWith("incrementar_uso_beneficio", {
-        p_id: 1,
-        p_usuario_id: "u1",
-      })
-    })
-  })
-
-  describe("confirmarAsistenciaEvento", () => {
-    it("upserts asistencia and returns true", async () => {
-      const chain = createChain({ data: null, error: null })
-      chain.upsert = vi.fn(() => Promise.resolve({ data: null, error: null }))
-      mockFrom.mockReturnValue(chain)
-
-      const { data, error } = await database.confirmarAsistenciaEvento(1, "u1")
-      expect(data).toBe(true)
-      expect(error).toBeNull()
-    })
-  })
-
   describe("getNotificaciones", () => {
-    it("returns notifications ordered by creado_en desc", async () => {
+    it("returns notifications filtered by usuario_id", async () => {
       const notifs = [
         {
           id: "n1",
@@ -140,25 +227,17 @@ describe("database", () => {
           tipo: "sistema",
           prioridad: "normal",
           creado_en: "2024-01-02",
-          updated_at: "2024-01-02",
-        },
-        {
-          id: "n2",
-          usuario_id: "u1",
-          titulo: "T2",
-          mensaje: "M2",
-          estado: "leida",
-          tipo: "evento",
-          prioridad: "alta",
-          creado_en: "2024-01-01",
-          updated_at: "2024-01-01",
         },
       ]
-      mockFrom.mockReturnValue(createChain({ data: notifs, error: null }))
+      mockGetFullList.mockResolvedValue(notifs)
 
       const { data, error } = await database.getNotificaciones("u1")
       expect(data).toEqual(notifs)
       expect(error).toBeNull()
+      expect(mockGetFullList).toHaveBeenCalledWith({
+        filter: 'usuario_id="u1"',
+        sort: "-creado_en",
+      })
     })
   })
 
@@ -173,21 +252,28 @@ describe("database", () => {
         tipo: "sistema",
         prioridad: "normal",
         creado_en: "2024-01-01",
-        updated_at: "2024-01-01",
         leido_en: "2024-01-01T00:00:00Z",
       }
-      const chain = createChain({ data: updated, error: null })
-      mockFrom.mockReturnValue(chain)
+      mockUpdate.mockResolvedValue(updated)
 
       const { data, error } = await database.marcarNotificacionLeida("n1")
       expect(data).toEqual(updated)
       expect(error).toBeNull()
+      expect(mockUpdate).toHaveBeenCalledWith("n1", {
+        estado: "leida",
+        leido_en: expect.any(String),
+      })
     })
   })
 
   describe("broadcastNotificacion", () => {
-    it("calls enviar_notificacion_broadcast RPC", async () => {
-      mockRpc.mockResolvedValue({ data: null, error: null })
+    it("fetches users by role and creates notifications for each", async () => {
+      const users = [
+        { id: "u1", email: "a@test.cl" },
+        { id: "u2", email: "b@test.cl" },
+      ]
+      mockGetFullList.mockResolvedValue(users)
+      mockCreate.mockResolvedValue({})
 
       const { error } = await database.broadcastNotificacion(
         "Titulo",
@@ -197,31 +283,51 @@ describe("database", () => {
         "alta",
       )
       expect(error).toBeNull()
-      expect(mockRpc).toHaveBeenCalledWith("enviar_notificacion_broadcast", {
-        p_titulo: "Titulo",
-        p_mensaje: "Mensaje",
-        p_tipo: "sistema",
-        p_target_role: "Administrador",
-        p_prioridad: "alta",
-        p_icono: null,
-        p_color: null,
-        p_action_url: null,
-        p_action_text: null,
-        p_metadata: null,
-      })
+      expect(mockGetFullList).toHaveBeenCalledWith({ filter: 'rol="Administrador"' })
+      expect(mockCreate).toHaveBeenCalledTimes(2)
     })
 
-    it("calls RPC with null target_role for global broadcast", async () => {
-      mockRpc.mockResolvedValue({ data: null, error: null })
-
+    it("handles global broadcast (null targetRole)", async () => {
+      mockGetFullList.mockResolvedValue([])
       const { error } = await database.broadcastNotificacion("Titulo", "Mensaje", "evento")
       expect(error).toBeNull()
-      expect(mockRpc).toHaveBeenCalledWith(
-        "enviar_notificacion_broadcast",
-        expect.objectContaining({
-          p_target_role: null,
-        }),
-      )
+      expect(mockGetFullList).toHaveBeenCalledWith({ filter: "" })
+    })
+  })
+
+  describe("getEstadisticasUsuario", () => {
+    it("returns totalItems count from PB getList", async () => {
+      mockGetList.mockResolvedValue({ items: [], totalItems: 5, page: 1, perPage: 1 })
+
+      const { beneficiosUtilizados, error } = await database.getEstadisticasUsuario("u1")
+      expect(beneficiosUtilizados).toBe(5)
+      expect(error).toBeNull()
+    })
+  })
+
+  describe("marcarTodasNotificacionesLeidas", () => {
+    it("fetches unread and updates each", async () => {
+      mockGetFullList.mockResolvedValue([{ id: "n1" }, { id: "n2" }])
+      mockUpdate.mockResolvedValue({})
+
+      const { error } = await database.marcarTodasNotificacionesLeidas("u1")
+      expect(error).toBeNull()
+      expect(mockUpdate).toHaveBeenCalledTimes(2)
+      expect(mockUpdate).toHaveBeenCalledWith("n1", {
+        estado: "leida",
+        leido_en: expect.any(String),
+      })
+    })
+  })
+
+  describe("limpiarNotificaciones", () => {
+    it("fetches all and deletes each", async () => {
+      mockGetFullList.mockResolvedValue([{ id: "n1" }, { id: "n2" }])
+      mockDelete.mockResolvedValue(true)
+
+      const { error } = await database.limpiarNotificaciones("u1")
+      expect(error).toBeNull()
+      expect(mockDelete).toHaveBeenCalledTimes(2)
     })
   })
 })

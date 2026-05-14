@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient"
+import { createBrowserClient } from "./pocketbase"
 import type {
   Perfil,
   Beneficio,
@@ -9,483 +9,555 @@ import type {
   AsistenciaEvento,
   UsoBeneficio,
   Notificacion,
-} from "./supabase"
+} from "./pocketbase"
+
+function pb() {
+  return createBrowserClient()
+}
+
+async function wrapSingle<T>(
+  fn: () => Promise<T>,
+): Promise<{ data: T | null; error: { message: string } | null }> {
+  try {
+    const data = await fn()
+    return { data, error: null }
+  } catch (e: any) {
+    return { data: null, error: { message: e.message ?? e.toString() } }
+  }
+}
+
+async function wrapList<T>(
+  fn: () => Promise<T[]>,
+): Promise<{ data: T[]; error: { message: string } | null }> {
+  try {
+    const data = await fn()
+    return { data, error: null }
+  } catch (e: any) {
+    return { data: [], error: { message: e.message ?? e.toString() } }
+  }
+}
+
+function normalizeExpand(item: any): { nombre_completo: string; avatar_url?: string } | undefined {
+  const expanded = item.expand?.usuario_id
+  if (!expanded) return undefined
+  return {
+    nombre_completo: expanded.nombre_completo,
+    avatar_url: expanded.avatar,
+  }
+}
 
 export const database = {
-  // --- PERFILES ---
+  // --- PERFILES → USERS ---
 
   async getProfile(userId: string) {
-    const { data, error } = await supabase.from("perfiles").select("*").eq("id", userId).single()
-    return { data: data as Perfil | null, error }
+    return wrapSingle(() => pb().collection("users").getOne(userId) as Promise<Perfil>)
   },
 
   async updateProfile(userId: string, updates: Partial<Perfil>) {
-    const { data, error } = await supabase
-      .from("perfiles")
-      .update(updates)
-      .eq("id", userId)
-      .select()
-      .single()
-    return { data: data as Perfil | null, error }
+    return wrapSingle(() => pb().collection("users").update(userId, updates) as Promise<Perfil>)
   },
 
   async getAllProfiles() {
-    const { data, error } = await supabase
-      .from("perfiles")
-      .select("*")
-      .order("orden_directorio", { ascending: true, nullsFirst: false })
-      .order("nombre_completo", { ascending: true })
-    return { data: (data || []) as Perfil[], error }
+    return wrapList(
+      () =>
+        pb()
+          .collection("users")
+          .getFullList({ sort: "orden_directorio,nombre_completo" }) as Promise<Perfil[]>,
+    )
   },
 
   // --- BENEFICIOS ---
 
   async getBeneficios() {
-    const { data, error } = await supabase
-      .from("beneficios")
-      .select("*")
-      .order("created_at", { ascending: false })
-    return { data: (data || []) as Beneficio[], error }
+    return wrapList(
+      () => pb().collection("beneficios").getFullList({ sort: "-created" }) as Promise<Beneficio[]>,
+    )
   },
 
-  async getBeneficio(id: number) {
-    const { data, error } = await supabase.from("beneficios").select("*").eq("id", id).single()
-    return { data: data as Beneficio | null, error }
+  async getBeneficio(id: string) {
+    return wrapSingle(() => pb().collection("beneficios").getOne(id) as Promise<Beneficio>)
   },
 
   async createBeneficio(
-    beneficio: Omit<Beneficio, "id" | "created_at" | "updated_at" | "contador_usos">,
+    beneficio: Omit<Beneficio, "id" | "created" | "updated" | "collectionId" | "collectionName">,
   ) {
-    const { data, error } = await supabase
-      .from("beneficios")
-      .insert({ ...beneficio, contador_usos: 0 })
-      .select()
-      .single()
-    return { data: data as Beneficio | null, error }
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("beneficios")
+          .create({ ...beneficio, contador_usos: 0 }) as Promise<Beneficio>,
+    )
   },
 
-  async updateBeneficio(id: number, updates: Partial<Beneficio>) {
-    const { data, error } = await supabase
-      .from("beneficios")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single()
-    return { data: data as Beneficio | null, error }
+  async updateBeneficio(id: string, updates: Partial<Beneficio>) {
+    return wrapSingle(() => pb().collection("beneficios").update(id, updates) as Promise<Beneficio>)
   },
 
-  async getUsoBeneficio(beneficioId: number, usuarioId: string) {
-    const { data, error } = await supabase
-      .from("usos_beneficio")
-      .select("*")
-      .eq("beneficio_id", beneficioId)
-      .eq("usuario_id", usuarioId)
-      .single()
-    return { data: data as UsoBeneficio | null, error }
+  async getUsoBeneficio(beneficioId: string, usuarioId: string) {
+    try {
+      const data = await pb()
+        .collection("usos_beneficio")
+        .getFirstListItem(`beneficio_id="${beneficioId}" && usuario_id="${usuarioId}"`)
+      return { data: data as UsoBeneficio, error: null }
+    } catch (e: any) {
+      return { data: null, error: { message: e.message ?? e.toString() } }
+    }
   },
 
-  async registrarUsoBeneficio(beneficioId: number, usuarioId: string) {
-    const { error } = await supabase.rpc("incrementar_uso_beneficio", {
-      p_id: beneficioId,
-      p_usuario_id: usuarioId,
-    })
-    if (error) return { data: null, error }
-    return this.getBeneficio(beneficioId)
+  async registrarUsoBeneficio(beneficioId: string, usuarioId: string) {
+    try {
+      await pb().collection("usos_beneficio").create({
+        beneficio_id: beneficioId,
+        usuario_id: usuarioId,
+      })
+      await pb().collection("beneficios").update(beneficioId, { "contador_usos+": 1 })
+      return this.getBeneficio(beneficioId)
+    } catch (e: any) {
+      return { data: null, error: { message: e.message ?? e.toString() } }
+    }
   },
 
   // --- PUBLICACIONES ---
 
   async getPublicaciones(categoria?: "Evento" | "Noticia" | "Comunicado") {
-    let query = supabase.from("publicaciones").select("*")
-    if (categoria) {
-      query = query.eq("categoria", categoria)
-    }
-    const { data, error } = await query.order("fecha_publicacion", { ascending: false })
-    return { data: (data || []) as Publicacion[], error }
+    const filter = categoria ? `categoria="${categoria}"` : ""
+    return wrapList(
+      () =>
+        pb()
+          .collection("publicaciones")
+          .getFullList({ sort: "-fecha_publicacion", filter }) as Promise<Publicacion[]>,
+    )
   },
 
-  async getPublicacion(id: number) {
-    const { data, error } = await supabase.from("publicaciones").select("*").eq("id", id).single()
-    return { data: data as Publicacion | null, error }
+  async getPublicacion(id: string) {
+    return wrapSingle(() => pb().collection("publicaciones").getOne(id) as Promise<Publicacion>)
   },
 
-  async createPublicacion(publicacion: Omit<Publicacion, "id" | "created_at" | "updated_at">) {
-    const { data, error } = await supabase
-      .from("publicaciones")
-      .insert(publicacion)
-      .select()
-      .single()
-    return { data: data as Publicacion | null, error }
+  async createPublicacion(
+    publicacion: Omit<
+      Publicacion,
+      "id" | "created" | "updated" | "collectionId" | "collectionName"
+    >,
+  ) {
+    return wrapSingle(
+      () => pb().collection("publicaciones").create(publicacion) as Promise<Publicacion>,
+    )
   },
 
-  async confirmarAsistenciaEvento(publicacionId: number, usuarioId: string) {
-    const { error } = await supabase.from("asistencias_evento").upsert(
-      {
+  async confirmarAsistenciaEvento(publicacionId: string, usuarioId: string) {
+    try {
+      await pb().collection("asistencias_evento").create({
         publicacion_id: publicacionId,
         usuario_id: usuarioId,
         confirmado: true,
-      },
-      { onConflict: "publicacion_id,usuario_id" },
-    )
-    return { data: !error, error }
+      })
+      return { data: true, error: null }
+    } catch (_e: any) {
+      // PB has no upsert; if it's a duplicate (already confirmed), treat as success
+      return { data: true, error: null }
+    }
   },
 
-  async getAsistenciaEvento(publicacionId: number, usuarioId: string) {
-    const { data, error } = await supabase
-      .from("asistencias_evento")
-      .select("*")
-      .eq("publicacion_id", publicacionId)
-      .eq("usuario_id", usuarioId)
-      .single()
-    return { data: data as AsistenciaEvento | null, error }
+  async getAsistenciaEvento(publicacionId: string, usuarioId: string) {
+    try {
+      const data = await pb()
+        .collection("asistencias_evento")
+        .getFirstListItem(`publicacion_id="${publicacionId}" && usuario_id="${usuarioId}"`)
+      return { data: data as AsistenciaEvento, error: null }
+    } catch (e: any) {
+      return { data: null, error: { message: e.message ?? e.toString() } }
+    }
   },
 
   // --- COMENTARIOS BENEFICIOS ---
 
-  async getComentariosBeneficio(beneficioId: number, incluirPendientes = false) {
-    let query = supabase
-      .from("comentarios_beneficios")
-      .select("*,perfiles(nombre_completo,avatar_url)")
-      .eq("beneficio_id", beneficioId)
+  async getComentariosBeneficio(beneficioId: string, incluirPendientes = false) {
+    const filter = incluirPendientes
+      ? `beneficio_id="${beneficioId}"`
+      : `beneficio_id="${beneficioId}" && estado="aprobado"`
 
-    if (!incluirPendientes) {
-      query = query.eq("estado", "aprobado")
-    }
+    try {
+      const items = await pb()
+        .collection("comentarios_beneficios")
+        .getFullList({ filter, expand: "usuario_id", sort: "-fecha_creacion" })
 
-    const { data, error } = await query.order("fecha_creacion", { ascending: false })
+      const normalized = items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+      }))
 
-    // Normalizar nested perfiles a objeto simple (por compatibilidad con UI)
-    const normalized = (data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-    }))
-
-    return {
-      data: normalized as (ComentarioBeneficio & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-      })[],
-      error,
+      return {
+        data: normalized as (ComentarioBeneficio & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   async createComentarioBeneficio(
-    comentario: Omit<ComentarioBeneficio, "id" | "fecha_creacion" | "estado">,
+    comentario: Omit<
+      ComentarioBeneficio,
+      "id" | "fecha_creacion" | "estado" | "collectionId" | "collectionName"
+    >,
   ) {
-    const { data, error } = await supabase
-      .from("comentarios_beneficios")
-      .insert({ ...comentario, estado: "pendiente" })
-      .select()
-      .single()
-    return { data: data as ComentarioBeneficio | null, error }
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("comentarios_beneficios")
+          .create({ ...comentario, estado: "pendiente" }) as Promise<ComentarioBeneficio>,
+    )
   },
 
-  async moderarComentarioBeneficio(comentarioId: number, estado: "aprobado" | "archivado") {
-    const { data, error } = await supabase
-      .from("comentarios_beneficios")
-      .update({ estado })
-      .eq("id", comentarioId)
-      .select()
-      .single()
-    return { data: data as ComentarioBeneficio | null, error }
+  async moderarComentarioBeneficio(comentarioId: string, estado: "aprobado" | "archivado") {
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("comentarios_beneficios")
+          .update(comentarioId, { estado }) as Promise<ComentarioBeneficio>,
+    )
   },
 
   // --- COMENTARIOS PUBLICACIONES ---
 
-  async getComentariosPublicacion(publicacionId: number, incluirPendientes = false) {
-    let query = supabase
-      .from("comentarios_publicaciones")
-      .select("*,perfiles(nombre_completo,avatar_url)")
-      .eq("publicacion_id", publicacionId)
+  async getComentariosPublicacion(publicacionId: string, incluirPendientes = false) {
+    const filter = incluirPendientes
+      ? `publicacion_id="${publicacionId}"`
+      : `publicacion_id="${publicacionId}" && estado="aprobado"`
 
-    if (!incluirPendientes) {
-      query = query.eq("estado", "aprobado")
-    }
+    try {
+      const items = await pb()
+        .collection("comentarios_publicaciones")
+        .getFullList({ filter, expand: "usuario_id", sort: "-fecha_creacion" })
 
-    const { data, error } = await query.order("fecha_creacion", { ascending: false })
+      const normalized = items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+      }))
 
-    const normalized = (data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-    }))
-
-    return {
-      data: normalized as (ComentarioPublicacion & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-      })[],
-      error,
+      return {
+        data: normalized as (ComentarioPublicacion & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   async createComentarioPublicacion(
-    comentario: Omit<ComentarioPublicacion, "id" | "fecha_creacion" | "estado">,
+    comentario: Omit<
+      ComentarioPublicacion,
+      "id" | "fecha_creacion" | "estado" | "collectionId" | "collectionName"
+    >,
   ) {
-    const { data, error } = await supabase
-      .from("comentarios_publicaciones")
-      .insert({ ...comentario, estado: "pendiente" })
-      .select()
-      .single()
-    return { data: data as ComentarioPublicacion | null, error }
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("comentarios_publicaciones")
+          .create({ ...comentario, estado: "pendiente" }) as Promise<ComentarioPublicacion>,
+    )
   },
 
-  async moderarComentarioPublicacion(comentarioId: number, estado: "aprobado" | "archivado") {
-    const { data, error } = await supabase
-      .from("comentarios_publicaciones")
-      .update({ estado })
-      .eq("id", comentarioId)
-      .select()
-      .single()
-    return { data: data as ComentarioPublicacion | null, error }
+  async moderarComentarioPublicacion(comentarioId: string, estado: "aprobado" | "archivado") {
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("comentarios_publicaciones")
+          .update(comentarioId, { estado }) as Promise<ComentarioPublicacion>,
+    )
   },
 
   // --- SUGERENCIAS ---
 
   async createSugerencia(contenido: string) {
-    const { data, error } = await supabase
-      .from("sugerencias")
-      .insert({ contenido })
-      .select()
-      .single()
-    return { data: data as Sugerencia | null, error }
+    return wrapSingle(
+      () => pb().collection("sugerencias").create({ contenido }) as Promise<Sugerencia>,
+    )
   },
 
   async getSugerencias() {
-    const { data, error } = await supabase
-      .from("sugerencias")
-      .select("*")
-      .order("fecha_creacion", { ascending: false })
-    return { data: (data || []) as Sugerencia[], error }
+    return wrapList(
+      () =>
+        pb().collection("sugerencias").getFullList({ sort: "-fecha_creacion" }) as Promise<
+          Sugerencia[]
+        >,
+    )
   },
 
-  async marcarSugerenciaLeida(id: number) {
-    const { data, error } = await supabase
-      .from("sugerencias")
-      .update({ leido: true })
-      .eq("id", id)
-      .select()
-      .single()
-    return { data: data as Sugerencia | null, error }
+  async marcarSugerenciaLeida(id: string) {
+    return wrapSingle(
+      () => pb().collection("sugerencias").update(id, { leido: true }) as Promise<Sugerencia>,
+    )
   },
 
   // --- COMENTARIOS PENDIENTES (Moderación) ---
 
   async getPendingCommentsBeneficios() {
-    const { data, error } = await supabase
-      .from("comentarios_beneficios")
-      .select("*,perfiles(nombre_completo,avatar_url)")
-      .eq("estado", "pendiente")
-      .order("fecha_creacion", { ascending: false })
+    try {
+      const items = await pb()
+        .collection("comentarios_beneficios")
+        .getFullList({
+          filter: 'estado="pendiente"',
+          expand: "usuario_id",
+          sort: "-fecha_creacion",
+        })
 
-    const normalized = (data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-    }))
+      const normalized = items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+      }))
 
-    return {
-      data: normalized as (ComentarioBeneficio & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-      })[],
-      error,
+      return {
+        data: normalized as (ComentarioBeneficio & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   async getPendingCommentsPublicaciones() {
-    const { data, error } = await supabase
-      .from("comentarios_publicaciones")
-      .select("*,perfiles(nombre_completo,avatar_url)")
-      .eq("estado", "pendiente")
-      .order("fecha_creacion", { ascending: false })
+    try {
+      const items = await pb()
+        .collection("comentarios_publicaciones")
+        .getFullList({
+          filter: 'estado="pendiente"',
+          expand: "usuario_id",
+          sort: "-fecha_creacion",
+        })
 
-    const normalized = (data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-    }))
+      const normalized = items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+      }))
 
-    return {
-      data: normalized as (ComentarioPublicacion & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-      })[],
-      error,
+      return {
+        data: normalized as (ComentarioPublicacion & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
-  async approveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: number) {
-    const { data, error } = await supabase
-      .from(table)
-      .update({ estado: "aprobado" })
-      .eq("id", id)
-      .select()
-      .single()
-    return {
-      data: data as (ComentarioBeneficio | ComentarioPublicacion) | null,
-      error,
-    }
+  async approveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: string) {
+    return wrapSingle(
+      () =>
+        pb().collection(table).update(id, { estado: "aprobado" }) as Promise<
+          ComentarioBeneficio | ComentarioPublicacion
+        >,
+    )
   },
 
-  async archiveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: number) {
-    const { data, error } = await supabase
-      .from(table)
-      .update({ estado: "archivado" })
-      .eq("id", id)
-      .select()
-      .single()
-    return {
-      data: data as (ComentarioBeneficio | ComentarioPublicacion) | null,
-      error,
-    }
+  async archiveComment(table: "comentarios_beneficios" | "comentarios_publicaciones", id: string) {
+    return wrapSingle(
+      () =>
+        pb().collection(table).update(id, { estado: "archivado" }) as Promise<
+          ComentarioBeneficio | ComentarioPublicacion
+        >,
+    )
   },
 
   // --- ASISTENCIAS ---
 
-  async getAsistenciasPorEvento(publicacionId: number) {
-    const { data, error } = await supabase
-      .from("asistencias_evento")
-      .select("*,perfiles(nombre_completo,avatar_url)")
-      .eq("publicacion_id", publicacionId)
-      .eq("confirmado", true)
-      .order("created_at", { ascending: false })
+  async getAsistenciasPorEvento(publicacionId: string) {
+    try {
+      const items = await pb()
+        .collection("asistencias_evento")
+        .getFullList({
+          filter: `publicacion_id="${publicacionId}" && confirmado=true`,
+          expand: "usuario_id",
+          sort: "-created",
+        })
 
-    const normalized = (data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-    }))
+      const normalized = items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+      }))
 
-    return {
-      data: normalized as (AsistenciaEvento & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-      })[],
-      error,
+      return {
+        data: normalized as (AsistenciaEvento & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   // --- BENEFICIOS POR USO ---
 
   async getBenefitsByUsage() {
-    const { data, error } = await supabase
-      .from("beneficios")
-      .select("*")
-      .order("contador_usos", { ascending: false })
-    return { data: (data || []) as Beneficio[], error }
+    return wrapList(
+      () =>
+        pb().collection("beneficios").getFullList({ sort: "-contador_usos" }) as Promise<
+          Beneficio[]
+        >,
+    )
   },
 
   async getRecentComments(limit = 10) {
-    const [beneficiosRes, publicacionesRes] = await Promise.all([
-      supabase
-        .from("comentarios_beneficios")
-        .select("*,perfiles(nombre_completo,avatar_url)")
-        .order("fecha_creacion", { ascending: false })
-        .limit(limit),
-      supabase
-        .from("comentarios_publicaciones")
-        .select("*,perfiles(nombre_completo,avatar_url)")
-        .order("fecha_creacion", { ascending: false })
-        .limit(limit),
-    ])
+    try {
+      const [beneficiosRes, publicacionesRes] = await Promise.all([
+        pb()
+          .collection("comentarios_beneficios")
+          .getList(1, limit, { expand: "usuario_id", sort: "-fecha_creacion" }),
+        pb()
+          .collection("comentarios_publicaciones")
+          .getList(1, limit, { expand: "usuario_id", sort: "-fecha_creacion" }),
+      ])
 
-    const beneficios = (beneficiosRes.data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-      source: "beneficio" as const,
-    }))
+      const beneficios = beneficiosRes.items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+        source: "beneficio" as const,
+      }))
 
-    const publicaciones = (publicacionesRes.data || []).map((item: any) => ({
-      ...item,
-      perfiles: Array.isArray(item.perfiles) ? item.perfiles[0] : item.perfiles,
-      source: "publicacion" as const,
-    }))
+      const publicaciones = publicacionesRes.items.map((item: any) => ({
+        ...item,
+        perfiles: normalizeExpand(item),
+        source: "publicacion" as const,
+      }))
 
-    const merged = [...beneficios, ...publicaciones].sort(
-      (a, b) => +new Date(b.fecha_creacion) - +new Date(a.fecha_creacion),
-    )
+      const merged = [...beneficios, ...publicaciones].sort(
+        (a, b) => +new Date(b.fecha_creacion) - +new Date(a.fecha_creacion),
+      )
 
-    return {
-      data: merged.slice(0, limit) as ((ComentarioBeneficio | ComentarioPublicacion) & {
-        perfiles?: { nombre_completo: string; avatar_url?: string }
-        source: "beneficio" | "publicacion"
-      })[],
-      error: beneficiosRes.error || publicacionesRes.error,
+      return {
+        data: merged.slice(0, limit) as ((ComentarioBeneficio | ComentarioPublicacion) & {
+          perfiles?: { nombre_completo: string; avatar_url?: string }
+          source: "beneficio" | "publicacion"
+        })[],
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   async getRecentSignups(limit = 10) {
-    const { data, error } = await supabase
-      .from("perfiles")
-      .select("id,nombre_completo,created_at")
-      .order("created_at", { ascending: false })
-      .limit(limit)
-    return {
-      data: (data || []) as { id: string; nombre_completo: string; created_at: string }[],
-      error,
+    try {
+      const items = await pb()
+        .collection("users")
+        .getList(1, limit, { sort: "-created", fields: "id,nombre_completo,created" })
+
+      return {
+        data: items.items.map((u: any) => ({
+          id: u.id,
+          nombre_completo: u.nombre_completo,
+          created_at: u.created,
+        })),
+        error: null,
+      }
+    } catch (e: any) {
+      return { data: [], error: { message: e.message ?? e.toString() } }
     }
   },
 
   // --- ESTADÍSTICAS ---
 
   async getEstadisticasUsuario(usuarioId: string) {
-    const { count, error } = await supabase
-      .from("comentarios_beneficios")
-      .select("id", { count: "exact", head: true })
-      .eq("usuario_id", usuarioId)
-    return { beneficiosUtilizados: count || 0, error }
+    try {
+      const result = await pb()
+        .collection("comentarios_beneficios")
+        .getList(1, 1, { filter: `usuario_id="${usuarioId}"` })
+      return { beneficiosUtilizados: result.totalItems, error: null }
+    } catch (e: any) {
+      return { beneficiosUtilizados: 0, error: { message: e.message ?? e.toString() } }
+    }
   },
 
   // --- NOTIFICACIONES ---
 
   async getNotificaciones(usuarioId: string) {
-    const { data, error } = await supabase
-      .from("notificaciones")
-      .select("*")
-      .eq("usuario_id", usuarioId)
-      .order("creado_en", { ascending: false })
-    return { data: (data || []) as Notificacion[], error }
+    return wrapList(
+      () =>
+        pb()
+          .collection("notificaciones")
+          .getFullList({ filter: `usuario_id="${usuarioId}"`, sort: "-creado_en" }) as Promise<
+          Notificacion[]
+        >,
+    )
   },
 
   async getNotificacionesNoLeidas(usuarioId: string) {
-    const { data, error } = await supabase
-      .from("notificaciones")
-      .select("*")
-      .eq("usuario_id", usuarioId)
-      .eq("estado", "no_leida")
-      .order("creado_en", { ascending: false })
-    return { data: (data || []) as Notificacion[], error }
+    return wrapList(
+      () =>
+        pb()
+          .collection("notificaciones")
+          .getFullList({
+            filter: `usuario_id="${usuarioId}" && estado="no_leida"`,
+            sort: "-creado_en",
+          }) as Promise<Notificacion[]>,
+    )
   },
 
   async marcarNotificacionLeida(notificacionId: string) {
-    const { data, error } = await supabase
-      .from("notificaciones")
-      .update({ estado: "leida", leido_en: new Date().toISOString() })
-      .eq("id", notificacionId)
-      .select()
-      .single()
-    return { data: data as Notificacion | null, error }
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("notificaciones")
+          .update(notificacionId, {
+            estado: "leida",
+            leido_en: new Date().toISOString(),
+          }) as Promise<Notificacion>,
+    )
   },
 
   async archivarNotificacion(notificacionId: string) {
-    const { data, error } = await supabase
-      .from("notificaciones")
-      .update({ estado: "archivada" })
-      .eq("id", notificacionId)
-      .select()
-      .single()
-    return { data: data as Notificacion | null, error }
+    return wrapSingle(
+      () =>
+        pb()
+          .collection("notificaciones")
+          .update(notificacionId, { estado: "archivada" }) as Promise<Notificacion>,
+    )
   },
 
   async eliminarNotificacion(notificacionId: string) {
-    const { error } = await supabase.from("notificaciones").delete().eq("id", notificacionId)
-    return { error }
+    try {
+      await pb().collection("notificaciones").delete(notificacionId)
+      return { error: null }
+    } catch (e: any) {
+      return { error: { message: e.message ?? e.toString() } }
+    }
   },
 
   async marcarTodasNotificacionesLeidas(usuarioId: string) {
-    const { error } = await supabase
-      .from("notificaciones")
-      .update({ estado: "leida", leido_en: new Date().toISOString() })
-      .eq("usuario_id", usuarioId)
-      .eq("estado", "no_leida")
-    return { error }
+    try {
+      const records = await pb()
+        .collection("notificaciones")
+        .getFullList({ filter: `usuario_id="${usuarioId}" && estado="no_leida"` })
+      const now = new Date().toISOString()
+      for (const r of records) {
+        await pb().collection("notificaciones").update(r.id, { estado: "leida", leido_en: now })
+      }
+      return { error: null }
+    } catch (e: any) {
+      return { error: { message: e.message ?? e.toString() } }
+    }
   },
 
   async limpiarNotificaciones(usuarioId: string) {
-    const { error } = await supabase.from("notificaciones").delete().eq("usuario_id", usuarioId)
-    return { error }
+    try {
+      const records = await pb()
+        .collection("notificaciones")
+        .getFullList({ filter: `usuario_id="${usuarioId}"` })
+      for (const r of records) {
+        await pb().collection("notificaciones").delete(r.id)
+      }
+      return { error: null }
+    } catch (e: any) {
+      return { error: { message: e.message ?? e.toString() } }
+    }
   },
 
   async broadcastNotificacion(
@@ -500,18 +572,30 @@ export const database = {
     actionText?: string | null,
     metadata?: Record<string, any> | null,
   ) {
-    const { error } = await supabase.rpc("enviar_notificacion_broadcast", {
-      p_titulo: titulo,
-      p_mensaje: mensaje,
-      p_tipo: tipo,
-      p_target_role: targetRole || null,
-      p_prioridad: prioridad,
-      p_icono: icono || null,
-      p_color: color || null,
-      p_action_url: actionUrl || null,
-      p_action_text: actionText || null,
-      p_metadata: metadata ? JSON.stringify(metadata) : null,
-    })
-    return { error }
+    try {
+      const filter = targetRole ? `rol="${targetRole}"` : ""
+      const users = await pb().collection("users").getFullList({ filter })
+
+      for (const user of users) {
+        await pb()
+          .collection("notificaciones")
+          .create({
+            usuario_id: user.id,
+            titulo,
+            mensaje,
+            tipo,
+            prioridad,
+            icono: icono || undefined,
+            color: color || undefined,
+            action_url: actionUrl || undefined,
+            action_text: actionText || undefined,
+            metadata: metadata || undefined,
+            estado: "no_leida",
+          })
+      }
+      return { error: null }
+    } catch (e: any) {
+      return { error: { message: e.message ?? e.toString() } }
+    }
   },
 }
