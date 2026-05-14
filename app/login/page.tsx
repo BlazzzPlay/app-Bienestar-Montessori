@@ -6,8 +6,8 @@ import { useAuth } from "@/hooks/useAuth"
 import { signIn } from "@/lib/pocketbase-auth"
 
 const DEV_USERS = [
-  { label: "Admin", email: "admin@colegiomontessori.cl", password: "test123456", rol: "Administrador" },
-  { label: "Usuario", email: "user@colegiomontessori.cl", password: "test123456", rol: "Beneficiario" },
+  { label: "María G.", email: "admin@colegiomontessori.cl", password: "test123456", rol: "Administradora" },
+  { label: "Pedro M.", email: "user@colegiomontessori.cl", password: "test123456", rol: "Beneficiario" },
 ]
 
 function LoginForm() {
