@@ -22,7 +22,8 @@ function LoginForm() {
   const [isDev, setIsDev] = useState(false)
 
   useEffect(() => {
-    setIsDev(typeof window !== "undefined" && window.location.hostname === "localhost")
+    const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || ""
+    setIsDev(pbUrl.includes("localhost") || pbUrl.includes("127.0.0.1"))
   }, [])
 
   useEffect(() => {
