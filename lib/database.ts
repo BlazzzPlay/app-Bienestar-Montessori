@@ -70,7 +70,7 @@ export const database = {
 
   async getBeneficios() {
     return wrapList(
-      () => pb().collection("beneficios").getFullList({ sort: "-created" }) as Promise<Beneficio[]>,
+      () => pb().collection("beneficios").getFullList({ sort: "-id" }) as Promise<Beneficio[]>,
     )
   },
 
@@ -371,7 +371,7 @@ export const database = {
         .getFullList({
           filter: `publicacion="${publicacionId}" && confirmado=true`,
           expand: "usuario_id",
-          sort: "-created",
+          sort: "-id",
         })
 
       const normalized = items.map((item: any) => ({
@@ -444,7 +444,7 @@ export const database = {
     try {
       const items = await pb()
         .collection("users")
-        .getList(1, limit, { sort: "-created", fields: "id,nombre_completo,created" })
+        .getList(1, limit, { sort: "-id", fields: "id,nombre_completo,created" })
 
       return {
         data: items.items.map((u: any) => ({

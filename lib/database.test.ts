@@ -67,7 +67,7 @@ describe("database", () => {
       const { data, error } = await database.getBeneficios()
       expect(data).toEqual(beneficios)
       expect(error).toBeNull()
-      expect(mockGetFullList).toHaveBeenCalledWith({ sort: "-created" })
+      expect(mockGetFullList).toHaveBeenCalledWith({ sort: "-id" })
     })
   })
 
