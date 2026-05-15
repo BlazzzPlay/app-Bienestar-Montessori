@@ -117,7 +117,7 @@ async function main() {
       titulo: "Taller de Finanzas Personales",
       descripcion: "Dirigido a todos los funcionarios. Aprenderás a presupuestar, ahorrar y planificar tus metas financieras. Cupos limitados.",
       fecha_publicacion: "2026-06-05T15:00:00Z",
-      categoria: "Taller",
+      categoria: "Evento",
       lugar: "Sala de Conferencias, Edificio Central",
       organizador: "Equipo de Bienestar",
     },
