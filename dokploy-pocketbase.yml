@@ -1,3 +1,6 @@
+# Referencia: config del servicio PocketBase en Dokploy
+# PocketBase v0.38.x — CORS se configura desde Admin UI, no via flag --cors
+
 version: "3.8"
 services:
   pocketbase:
@@ -8,9 +11,6 @@ services:
     volumes:
       - pocketbase-data:/pocketbase
       - ./pb_migrations:/pocketbase/pb_migrations
-    command:
-      - serve
-      - --cors=https://dev-bienestar.blazz.cl,http://localhost:3036
     environment:
       - POCKETBASE_ADMIN_EMAIL=${ADMIN_EMAIL}
       - POCKETBASE_ADMIN_PASSWORD=${ADMIN_PASSWORD}
