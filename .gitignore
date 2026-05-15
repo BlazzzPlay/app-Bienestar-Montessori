@@ -37,4 +37,7 @@ LICENSE.md
 # AI agents (auto-generated)
 .agents/
 .claude/
-.atl/pnpm-workspace.yaml
+.atl/
+
+# pnpm workspace (auto-generated, not a real workspace)
+pnpm-workspace.yaml
