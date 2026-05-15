@@ -18,6 +18,7 @@ import {
   Loader2,
   CalendarPlus,
 } from "lucide-react"
+import MainLayout from "@/components/main-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -122,33 +123,31 @@ export default function DetalleEventoPage() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center gap-3">
-          <Skeleton className="h-8 w-8 rounded-lg bg-primary-foreground/20" />
-          <Skeleton className="h-5 w-40 bg-primary-foreground/20" />
-        </header>
+      <MainLayout title="Cargando...">
         <div className="max-w-2xl mx-auto p-4 space-y-4">
           <Skeleton className="aspect-video w-full rounded-xl" />
           <Skeleton className="h-8 w-3/4" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-2/3" />
         </div>
-      </div>
+      </MainLayout>
     )
   }
 
   // ── Error ──
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <p className="text-muted-foreground text-lg">{error || "Publicación no encontrada"}</p>
-        <Link href="/eventos" className="mt-4">
-          <Button variant="outline">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Eventos
-          </Button>
-        </Link>
-      </div>
+      <MainLayout title="Detalle">
+        <div className="flex flex-col items-center justify-center p-4 pt-12">
+          <p className="text-muted-foreground text-lg">{error || "Publicación no encontrada"}</p>
+          <Link href="/eventos" className="mt-4">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Eventos
+            </Button>
+          </Link>
+        </div>
+      </MainLayout>
     )
   }
 
@@ -156,23 +155,7 @@ export default function DetalleEventoPage() {
   const catColor = CATEGORY_COLORS[event.categoria] || ""
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ── Header ── */}
-      <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-        <Link href="/eventos">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-primary-foreground hover:bg-primary-foreground/10 h-8 w-8"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <h1 className="text-base font-semibold truncate">
-          {event.categoria === "Evento" ? "Detalle del Evento" : event.categoria}
-        </h1>
-      </header>
-
+    <MainLayout title={event.titulo}>
       <div className="max-w-2xl mx-auto">
         {/* ── Hero Image ── */}
         <div className="aspect-[16/9] sm:aspect-[2/1] bg-muted">
@@ -387,6 +370,6 @@ export default function DetalleEventoPage() {
           </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   )
 }

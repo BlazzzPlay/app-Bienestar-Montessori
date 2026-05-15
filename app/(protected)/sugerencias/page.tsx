@@ -23,7 +23,7 @@ export default function SugerenciasPage() {
 
   return (
     <MainLayout title="Sugerencias">
-      <div className="p-4 max-w-xl mx-auto space-y-5">
+      <div className="p-4 max-w-4xl mx-auto space-y-5">
         {/* ── Header card ── */}
         <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 to-secondary/5">
           <CardContent className="p-5 space-y-3">

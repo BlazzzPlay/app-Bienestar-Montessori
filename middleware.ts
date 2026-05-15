@@ -18,8 +18,8 @@ export const config = {
     "/perfil/:path*",
     "/directorio/:path*",
     "/sugerencias/:path*",
-    "/eventos/:id/:path*",
-    "/beneficios/:id/:path*",
+    "/eventos/:path*",
+    "/beneficios/:path*",
     "/admin/:path*",
   ],
 }

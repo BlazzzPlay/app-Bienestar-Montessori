@@ -45,7 +45,7 @@ export default function DirectorioPage() {
   if (loading) {
     return (
       <MainLayout title="Directorio">
-        <div className="p-4 space-y-4 max-w-2xl mx-auto">
+        <div className="p-4 space-y-4 max-w-4xl mx-auto">
           <Skeleton className="h-11 w-full rounded-xl" />
           <Skeleton className="h-6 w-48" />
           {[1, 2, 3].map((i) => (
@@ -66,7 +66,7 @@ export default function DirectorioPage() {
   if (error) {
     return (
       <MainLayout title="Directorio">
-        <div className="p-4 max-w-2xl mx-auto text-center pt-12">
+        <div className="p-4 max-w-4xl mx-auto text-center pt-12">
           <p className="text-destructive font-medium">{error}</p>
         </div>
       </MainLayout>
@@ -75,7 +75,7 @@ export default function DirectorioPage() {
 
   return (
     <MainLayout title="Directorio">
-      <div className="p-4 space-y-5 max-w-2xl mx-auto">
+      <div className="p-4 space-y-5 max-w-4xl mx-auto">
         {/* ── Search ── */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />

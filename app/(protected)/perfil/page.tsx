@@ -73,7 +73,7 @@ export default function PerfilPage() {
   if (loading) {
     return (
       <MainLayout title="Mi Perfil">
-        <div className="p-4 space-y-4 max-w-md mx-auto">
+        <div className="p-4 space-y-4 max-w-2xl mx-auto">
           <div className="flex flex-col items-center space-y-3 pt-6">
             <Skeleton className="h-28 w-28 rounded-2xl" />
             <Skeleton className="h-5 w-40" />
@@ -93,7 +93,7 @@ export default function PerfilPage() {
   if (!profile || !validateProfileData(profile)) {
     return (
       <MainLayout title="Mi Perfil">
-        <div className="p-4 max-w-md mx-auto pt-12 text-center">
+        <div className="p-4 max-w-2xl mx-auto pt-12 text-center">
           <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-8 space-y-3">
             <Shield className="h-10 w-10 text-destructive mx-auto" />
             <p className="text-destructive font-semibold">Error en los datos del perfil</p>
@@ -125,7 +125,7 @@ export default function PerfilPage() {
 
   return (
     <MainLayout title="Mi Perfil">
-      <div className="p-4 space-y-4 max-w-md mx-auto">
+      <div className="p-4 space-y-4 max-w-2xl mx-auto">
         {/* ── Avatar + Name Card ── */}
         <Card className="relative overflow-hidden border-0 shadow-lg">
           {/* Easter Egg */}

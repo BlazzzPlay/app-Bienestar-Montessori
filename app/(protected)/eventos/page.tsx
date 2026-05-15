@@ -32,7 +32,7 @@ export default function EventosPage() {
   if (loading) {
     return (
       <MainLayout title="Eventos">
-        <div className="p-4 space-y-4 max-w-3xl mx-auto">
+        <div className="p-4 space-y-4 max-w-4xl mx-auto">
           <div className="flex gap-2 overflow-x-auto pb-2">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-9 w-24 rounded-full flex-shrink-0" />
@@ -56,7 +56,7 @@ export default function EventosPage() {
   if (error) {
     return (
       <MainLayout title="Eventos">
-        <div className="p-4 max-w-3xl mx-auto text-center pt-12">
+        <div className="p-4 max-w-4xl mx-auto text-center pt-12">
           <p className="text-destructive font-medium">{error}</p>
         </div>
       </MainLayout>
@@ -95,7 +95,7 @@ export default function EventosPage() {
 
   return (
     <MainLayout title="Eventos">
-      <div className="p-4 space-y-4 max-w-3xl mx-auto">
+      <div className="p-4 space-y-4 max-w-4xl mx-auto">
         {/* ── Filter pills ── */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
           {filtros.map((filtro) => {

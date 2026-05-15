@@ -91,11 +91,54 @@ function LoginForm() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
-          <img
-            src="/placeholder.svg?height=128&width=128"
-            alt="Logo Bienestar Montessori"
+          <svg
+            viewBox="0 0 128 128"
             className="w-32 h-auto mx-auto mb-6"
-          />
+            aria-label="Logo Bienestar Montessori"
+            role="img"
+          >
+            <defs>
+              <linearGradient id="s-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(222.2 47.4% 14%)" />
+                <stop offset="100%" stopColor="hsl(222.2 47.4% 22%)" />
+              </linearGradient>
+            </defs>
+            {/* Shield — navy */}
+            <path
+              d="M64 6 L14 30 L14 56 C14 96 40 118 64 124 C88 118 114 96 114 56 L114 30 Z"
+              fill="url(#s-grad)"
+              stroke="hsl(41 76% 49%)"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
+            {/* Inner shield line — gold */}
+            <path
+              d="M64 17 L24 38 L24 56 C24 88 46 108 64 113 C82 108 104 88 104 56 L104 38 Z"
+              fill="none"
+              stroke="hsl(41 76% 49%)"
+              strokeWidth="1"
+              opacity="0.35"
+            />
+            {/* Open book — gold left page */}
+            <path d="M40 62 L64 52 L64 92 L40 80 Z" fill="hsl(41 76% 49%)" opacity="0.9" />
+            {/* Open book — gold right page */}
+            <path d="M64 52 L88 62 L88 80 L64 92 Z" fill="hsl(41 76% 62%)" opacity="0.9" />
+            {/* Book spine */}
+            <line
+              x1="64"
+              y1="52"
+              x2="64"
+              y2="93"
+              stroke="hsl(222.2 47.4% 14%)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            {/* Heart — gold */}
+            <path
+              d="M64 28 C57 22 46 25 46 34 C46 42 56 50 64 56 C72 50 82 42 82 34 C82 25 71 22 64 28Z"
+              fill="hsl(41 76% 49%)"
+            />
+          </svg>
           <h1 className="text-3xl font-bold text-foreground">Bienestar Montessori</h1>
           <p className="text-muted-foreground mt-2">Portal de beneficios para funcionarios</p>
         </div>
