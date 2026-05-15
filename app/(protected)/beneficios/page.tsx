@@ -73,6 +73,13 @@ export default function BeneficiosPage() {
   return (
     <MainLayout title="Beneficios">
       <div className="p-4 space-y-4 max-w-4xl mx-auto">
+        {/* ── Contador ── */}
+        {!loading && !error && (
+          <p className="text-xs text-muted-foreground/60 text-right">
+            {beneficios.length} beneficio{beneficios.length !== 1 ? "s" : ""} disponibles
+          </p>
+        )}
+
         {/* ── Search bar ── */}
         <div className="flex gap-2">
           <div className="relative flex-1">
