@@ -1,0 +1,48 @@
+# Referencia: config del servicio PocketBase en Dokploy
+# Copiá esto al panel de Dokploy → servicio pocketbase
+
+version: "3.8"
+services:
+  pocketbase:
+    image: adrianmusante/pocketbase:latest
+    restart: always
+    expose:
+      - 8090
+    volumes:
+      - pocketbase-data:/pocketbase
+      - ./pb_migrations:/pocketbase/pb_migrations
+    command:
+      - serve
+      - --cors=https://dev-bienestar.blazz.cl,http://localhost:3036
+    environment:
+      - POCKETBASE_ADMIN_EMAIL=${ADMIN_EMAIL}
+      - POCKETBASE_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - POCKETBASE_ADMIN_UPSERT=true
+      - POCKETBASE_PORT_NUMBER=8090
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://localhost:8090/_/
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - montessori-pocketbase-jknckg
+      - dokploy-network
+    labels:
+      - traefik.http.routers.montessori-pocketbase-jknckg-15-web.rule=Host(`tbase.blazz.cl`)
+      - traefik.http.routers.montessori-pocketbase-jknckg-15-web.entrypoints=web
+      - traefik.http.services.montessori-pocketbase-jknckg-15-web.loadbalancer.server.port=8090
+      - traefik.http.routers.montessori-pocketbase-jknckg-15-web.service=montessori-pocketbase-jknckg-15-web
+      - traefik.enable=true
+volumes:
+  pocketbase-data: {}
+networks:
+  montessori-pocketbase-jknckg:
+    name: montessori-pocketbase-jknckg
+    external: true
+  dokploy-network:
+    name: dokploy-network
+    external: true
