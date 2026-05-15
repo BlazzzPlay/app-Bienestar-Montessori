@@ -97,7 +97,7 @@ export const database = {
     try {
       const data = await pb()
         .collection("usos_beneficio")
-        .getFirstListItem(`beneficio_id="${beneficioId}" && usuario_id="${usuarioId}"`)
+        .getFirstListItem(`beneficio="${beneficioId}" && usuario="${usuarioId}"`)
       return { data: data as UsoBeneficio, error: null }
     } catch (e: any) {
       return { data: null, error: { message: e.message ?? e.toString() } }
@@ -162,7 +162,7 @@ export const database = {
     try {
       const data = await pb()
         .collection("asistencias_evento")
-        .getFirstListItem(`publicacion_id="${publicacionId}" && usuario_id="${usuarioId}"`)
+        .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`)
       return { data: data as AsistenciaEvento, error: null }
     } catch (e: any) {
       return { data: null, error: { message: e.message ?? e.toString() } }
@@ -173,8 +173,8 @@ export const database = {
 
   async getComentariosBeneficio(beneficioId: string, incluirPendientes = false) {
     const filter = incluirPendientes
-      ? `beneficio_id="${beneficioId}"`
-      : `beneficio_id="${beneficioId}" && estado="aprobado"`
+      ? `beneficio="${beneficioId}"`
+      : `beneficio="${beneficioId}" && estado="aprobado"`
 
     try {
       const items = await pb()
@@ -224,8 +224,8 @@ export const database = {
 
   async getComentariosPublicacion(publicacionId: string, incluirPendientes = false) {
     const filter = incluirPendientes
-      ? `publicacion_id="${publicacionId}"`
-      : `publicacion_id="${publicacionId}" && estado="aprobado"`
+      ? `publicacion="${publicacionId}"`
+      : `publicacion="${publicacionId}" && estado="aprobado"`
 
     try {
       const items = await pb()
@@ -298,13 +298,11 @@ export const database = {
 
   async getPendingCommentsBeneficios() {
     try {
-      const items = await pb()
-        .collection("comentarios_beneficios")
-        .getFullList({
-          filter: 'estado="pendiente"',
-          expand: "usuario_id",
-          sort: "-fecha_creacion",
-        })
+      const items = await pb().collection("comentarios_beneficios").getFullList({
+        filter: 'estado="pendiente"',
+        expand: "usuario_id",
+        sort: "-fecha_creacion",
+      })
 
       const normalized = items.map((item: any) => ({
         ...item,
@@ -324,13 +322,11 @@ export const database = {
 
   async getPendingCommentsPublicaciones() {
     try {
-      const items = await pb()
-        .collection("comentarios_publicaciones")
-        .getFullList({
-          filter: 'estado="pendiente"',
-          expand: "usuario_id",
-          sort: "-fecha_creacion",
-        })
+      const items = await pb().collection("comentarios_publicaciones").getFullList({
+        filter: 'estado="pendiente"',
+        expand: "usuario_id",
+        sort: "-fecha_creacion",
+      })
 
       const normalized = items.map((item: any) => ({
         ...item,
@@ -373,7 +369,7 @@ export const database = {
       const items = await pb()
         .collection("asistencias_evento")
         .getFullList({
-          filter: `publicacion_id="${publicacionId}" && confirmado=true`,
+          filter: `publicacion="${publicacionId}" && confirmado=true`,
           expand: "usuario_id",
           sort: "-created",
         })
@@ -469,7 +465,7 @@ export const database = {
     try {
       const result = await pb()
         .collection("comentarios_beneficios")
-        .getList(1, 1, { filter: `usuario_id="${usuarioId}"` })
+        .getList(1, 1, { filter: `usuario="${usuarioId}"` })
       return { beneficiosUtilizados: result.totalItems, error: null }
     } catch (e: any) {
       return { beneficiosUtilizados: 0, error: { message: e.message ?? e.toString() } }
@@ -483,7 +479,7 @@ export const database = {
       () =>
         pb()
           .collection("notificaciones")
-          .getFullList({ filter: `usuario_id="${usuarioId}"`, sort: "-creado_en" }) as Promise<
+          .getFullList({ filter: `usuario="${usuarioId}"`, sort: "-creado_en" }) as Promise<
           Notificacion[]
         >,
     )
@@ -495,7 +491,7 @@ export const database = {
         pb()
           .collection("notificaciones")
           .getFullList({
-            filter: `usuario_id="${usuarioId}" && estado="no_leida"`,
+            filter: `usuario="${usuarioId}" && estado="no_leida"`,
             sort: "-creado_en",
           }) as Promise<Notificacion[]>,
     )
@@ -504,12 +500,10 @@ export const database = {
   async marcarNotificacionLeida(notificacionId: string) {
     return wrapSingle(
       () =>
-        pb()
-          .collection("notificaciones")
-          .update(notificacionId, {
-            estado: "leida",
-            leido_en: new Date().toISOString(),
-          }) as Promise<Notificacion>,
+        pb().collection("notificaciones").update(notificacionId, {
+          estado: "leida",
+          leido_en: new Date().toISOString(),
+        }) as Promise<Notificacion>,
     )
   },
 
@@ -535,7 +529,7 @@ export const database = {
     try {
       const records = await pb()
         .collection("notificaciones")
-        .getFullList({ filter: `usuario_id="${usuarioId}" && estado="no_leida"` })
+        .getFullList({ filter: `usuario="${usuarioId}" && estado="no_leida"` })
       const now = new Date().toISOString()
       for (const r of records) {
         await pb().collection("notificaciones").update(r.id, { estado: "leida", leido_en: now })
@@ -550,7 +544,7 @@ export const database = {
     try {
       const records = await pb()
         .collection("notificaciones")
-        .getFullList({ filter: `usuario_id="${usuarioId}"` })
+        .getFullList({ filter: `usuario="${usuarioId}"` })
       for (const r of records) {
         await pb().collection("notificaciones").delete(r.id)
       }

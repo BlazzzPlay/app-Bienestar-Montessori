@@ -235,7 +235,7 @@ describe("database", () => {
       expect(data).toEqual(notifs)
       expect(error).toBeNull()
       expect(mockGetFullList).toHaveBeenCalledWith({
-        filter: 'usuario_id="u1"',
+        filter: 'usuario="u1"',
         sort: "-creado_en",
       })
     })

@@ -2,41 +2,58 @@
 
 import React from "react"
 import type { ReactNode } from "react"
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react"
+import { SpeedInsights as VercelSpeedInsights } from "@vercel/speed-insights/next"
+
+// Solo renderizar Vercel Analytics si estamos deployados en Vercel
+const isVercel = !!process.env.NEXT_PUBLIC_VERCEL_ENV
 
 export function AnalyticsProviders({ children }: { children: ReactNode }) {
+  if (!isVercel) return <>{children}</>
+
   return (
     <>
       {children}
-      <Analytics />
-      <SpeedInsights />
+      <VercelAnalytics />
+      <VercelSpeedInsights />
     </>
   )
 }
 
-// Función para tracking de eventos personalizados
-export function trackEvent(name: string, properties?: Record<string, any>) {
+/**
+ * Tracking de eventos personalizados (solo funciona en Vercel)
+ */
+export function trackEvent(name: string, properties?: Record<string, unknown>) {
   if (typeof window === "undefined") return
+  if (!isVercel) return
 
   try {
-    if ((window as any).va?.track) {
-      ;(window as any).va.track(name, properties)
-    }
-  } catch (error) {
-    console.warn("Analytics tracking failed:", error)
+    const win = window as unknown as Record<string, unknown>
+    const va = win.va as
+      | { track?: (name: string, props?: Record<string, unknown>) => void }
+      | undefined
+    if (va?.track) va.track(name, properties)
+  } catch {
+    // Silently fail
   }
 }
 
-// Hook para verificar si Analytics está disponible
+/**
+ * Hook para verificar si Analytics está disponible
+ */
 export function useAnalytics() {
   const [isAvailable, setIsAvailable] = React.useState(false)
 
   React.useEffect(() => {
+    if (!isVercel) {
+      setIsAvailable(false)
+      return
+    }
     const checkAnalytics = () => {
-      const hasAnalytics = typeof window !== "undefined" && (window as any).va !== undefined
-      const hasSpeedInsights = typeof window !== "undefined" && (window as any).si !== undefined
-      setIsAvailable(hasAnalytics || hasSpeedInsights)
+      const win = window as unknown as Record<string, unknown>
+      const va = win.va as { track?: unknown } | undefined
+      const si = win.si as { track?: unknown } | undefined
+      setIsAvailable(!!va?.track || !!si?.track)
     }
 
     checkAnalytics()
