@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAdmin } from "@/hooks/useAdmin"
 import { useRouter } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 import ComentariosTab from "@/components/admin/tabs/comentarios-tab"
 import AsistenciaTab from "@/components/admin/tabs/asistencia-tab"
 import EstadisticasUsoTab from "@/components/admin/tabs/estadisticas-uso-tab"
@@ -42,12 +43,14 @@ export default function AdminPage() {
           </div>
           <AdminNotificationBell />
           <Button
-            variant="secondary"
+            variant="ghost"
             size="sm"
             onClick={() => router.push("/perfil")}
-            className="hidden sm:inline-flex"
+            className="text-primary-foreground/80 hover:text-primary-foreground p-2 sm:px-3"
+            aria-label="Volver al perfil"
           >
-            Volver al Perfil
+            <ArrowLeft className="h-5 w-5 sm:mr-1.5" />
+            <span className="hidden sm:inline">Volver</span>
           </Button>
         </div>
       </header>

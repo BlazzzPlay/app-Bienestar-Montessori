@@ -13,11 +13,14 @@ import {
   MessageCircle,
   Lightbulb,
   Loader2,
+  ArrowLeft,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAdmin } from "@/hooks/useAdmin"
+import { useRouter } from "next/navigation"
 import { database } from "@/lib/database"
 import AnalyticsDiagnostic from "@/components/analytics-diagnostic"
 import AdminNotificationBell from "@/components/notifications/admin-notification-bell"
@@ -38,6 +41,7 @@ interface RecentSignup {
 }
 
 export default function AnalyticsPage() {
+  const router = useRouter()
   const { estadisticas, loading: statsLoading } = useAdmin()
 
   const [recentComments, setRecentComments] = useState<RecentComment[]>([])
@@ -108,7 +112,17 @@ export default function AnalyticsPage() {
               Métricas y actividad reciente del programa
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/admin")}
+              className="text-primary-foreground/80 hover:text-primary-foreground p-2 sm:px-3"
+              aria-label="Volver al panel de administración"
+            >
+              <ArrowLeft className="h-5 w-5 sm:mr-1.5" />
+              <span className="hidden sm:inline">Admin</span>
+            </Button>
             <AdminNotificationBell />
             <Badge
               variant="secondary"
