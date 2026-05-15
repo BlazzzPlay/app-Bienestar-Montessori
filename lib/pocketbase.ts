@@ -110,6 +110,10 @@ const PB_URL = () => process.env.NEXT_PUBLIC_POCKETBASE_URL ?? "http://localhost
 function setupDefaults(pb: PocketBase): void {
   pb.beforeSend = (url, options) => {
     options.timeout = 10_000
+    // Skip skipTotal — PocketBase server v0.38 no lo soporta
+    if (typeof url === "string" && url.includes("skipTotal")) {
+      url = url.replace(/&?skipTotal=[^&]*/, "")
+    }
     return { url, options }
   }
 }
