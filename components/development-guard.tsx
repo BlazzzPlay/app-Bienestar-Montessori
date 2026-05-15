@@ -27,7 +27,7 @@ export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
@@ -45,20 +45,20 @@ export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
 
   // Mostrar mensaje de restricción para usuarios sin acceso completo
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardContent className="p-8 text-center space-y-6">
-          <div className="w-20 h-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
-            <Construction className="h-10 w-10 text-orange-600" />
+          <div className="w-20 h-20 mx-auto bg-warning/10 rounded-full flex items-center justify-center">
+            <Construction className="h-10 w-10 text-warning" />
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900">Sección en Desarrollo</h2>
-            <p className="text-gray-600 leading-relaxed">
+            <h2 className="text-xl font-bold text-foreground">Sección en Desarrollo</h2>
+            <p className="text-muted-foreground leading-relaxed">
               Esta funcionalidad está temporalmente restringida mientras realizamos mejoras en el
               sistema.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Por el momento, puedes acceder a tu perfil personal. Pronto habilitaremos todas las
               funcionalidades.
             </p>
@@ -73,7 +73,7 @@ export default function DevelopmentGuard({ children }: DevelopmentGuardProps) {
               Ir a Mi Perfil
             </Button>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-muted-foreground/60">
               ¿Necesitas ayuda? Contacta al administrador del sistema.
             </p>
           </div>

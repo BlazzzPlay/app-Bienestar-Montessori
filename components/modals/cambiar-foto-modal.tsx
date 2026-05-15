@@ -196,8 +196,10 @@ export default function CambiarFotoModal({
         <DialogContent className="sm:max-w-md">
           <div className="text-center py-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">¡Foto actualizada!</h3>
-            <p className="text-gray-600">Tu foto de perfil ha sido actualizada exitosamente.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">¡Foto actualizada!</h3>
+            <p className="text-muted-foreground">
+              Tu foto de perfil ha sido actualizada exitosamente.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
@@ -223,7 +225,7 @@ export default function CambiarFotoModal({
                   src={previewUrl || currentAvatar || "/placeholder.svg"}
                   alt={userName}
                 />
-                <AvatarFallback className="bg-gray-200 text-gray-600 text-xl">
+                <AvatarFallback className="bg-muted text-muted-foreground text-xl">
                   {userName
                     .split(" ")
                     .map((n) => n[0])
@@ -259,7 +261,7 @@ export default function CambiarFotoModal({
                   )}
                 </div>
                 {selectedFile && (
-                  <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                  <p className="text-sm font-medium text-foreground">{selectedFile.name}</p>
                 )}
               </div>
             )}
@@ -285,8 +287,8 @@ export default function CambiarFotoModal({
           {isLoading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Subiendo avatar...</span>
-                <span className="text-gray-600">{uploadProgress}%</span>
+                <span className="text-muted-foreground">Subiendo avatar...</span>
+                <span className="text-muted-foreground">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
             </div>
@@ -307,7 +309,7 @@ export default function CambiarFotoModal({
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full border-dashed border-2 border-gray-300 hover:border-primary hover:bg-primary/5 h-12"
+              className="w-full border-dashed border-2 border-border hover:border-primary hover:bg-primary/5 h-12"
               disabled={isLoading}
             >
               <Upload className="h-4 w-4 mr-2" />

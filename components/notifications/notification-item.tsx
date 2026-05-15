@@ -38,9 +38,9 @@ export default function NotificationItem({
       case "medium":
         return "bg-blue-500"
       case "low":
-        return "bg-gray-500"
+        return "bg-muted-foreground"
       default:
-        return "bg-gray-500"
+        return "bg-muted-foreground"
     }
   }
 
@@ -55,9 +55,9 @@ export default function NotificationItem({
       case "event":
         return "border-l-purple-500 bg-purple-50"
       case "system":
-        return "border-l-gray-500 bg-gray-50"
+        return "border-l-muted-foreground bg-muted/30"
       default:
-        return "border-l-gray-500 bg-gray-50"
+        return "border-l-muted-foreground bg-muted/30"
     }
   }
 
@@ -166,7 +166,7 @@ export default function NotificationItem({
                 <div className="flex-1 min-w-0">
                   <h4
                     className={cn(
-                      "text-sm font-medium text-gray-900 truncate",
+                      "text-sm font-medium text-foreground truncate",
                       notification.status === "unread" && "font-semibold",
                     )}
                   >
@@ -175,7 +175,7 @@ export default function NotificationItem({
 
                   <p
                     className={cn(
-                      "text-sm text-gray-600 mt-1",
+                      "text-sm text-muted-foreground mt-1",
                       compact ? "line-clamp-1" : "line-clamp-2",
                     )}
                   >
@@ -214,7 +214,7 @@ export default function NotificationItem({
                     )}
                   </div>
 
-                  <div className="flex items-center text-xs text-gray-500">
+                  <div className="flex items-center text-xs text-muted-foreground">
                     <Clock className="h-3 w-3 mr-1" />
                     {formatTimeAgo(notification.created_at)}
                   </div>
@@ -245,7 +245,7 @@ export default function NotificationItem({
             <Button
               variant="ghost"
               size="sm"
-              className="p-1 h-auto text-gray-400 hover:text-gray-600"
+              className="p-1 h-auto text-muted-foreground hover:text-muted-foreground"
               onClick={handleRemove}
               title="Eliminar notificación"
             >
@@ -256,7 +256,7 @@ export default function NotificationItem({
 
         {/* Expiration warning */}
         {notification.expiresAt && (
-          <div className="mt-2 text-xs text-gray-500 flex items-center">
+          <div className="mt-2 text-xs text-muted-foreground flex items-center">
             <Clock className="h-3 w-3 mr-1" />
             Expira:{" "}
             {typeof notification.expiresAt === "string"

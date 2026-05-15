@@ -6,7 +6,7 @@ import Link from "next/link"
 export default function OfflinePage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-primary/5 to-white p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="w-full max-w-md bg-card rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-primary to-blue-500 p-6 text-white text-center">
           <WifiOff className="h-12 w-12 mx-auto mb-2 opacity-90" />
           <h1 className="text-2xl font-bold">Sin conexión</h1>
@@ -48,7 +48,7 @@ export default function OfflinePage() {
 
             <Link
               href="/"
-              className="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-md flex items-center justify-center"
+              className="w-full py-2 px-4 border border-border text-muted-foreground rounded-md flex items-center justify-center"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver al inicio
@@ -57,7 +57,7 @@ export default function OfflinePage() {
         </div>
       </div>
 
-      <p className="text-sm text-gray-500 mt-8">Bienestar Montessori • Versión Offline</p>
+      <p className="text-sm text-muted-foreground mt-8">Bienestar Montessori • Versión Offline</p>
     </div>
   )
 }

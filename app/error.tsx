@@ -16,13 +16,15 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center space-y-6">
-        <div className="w-20 h-20 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+        <div className="w-20 h-20 mx-auto bg-destructive/10 rounded-full flex items-center justify-center">
           <AlertTriangle className="h-10 w-10 text-red-600" />
         </div>
-        <h1 className="text-xl font-bold text-gray-900">Algo salió mal</h1>
-        <p className="text-gray-600">Ocurrió un error inesperado. Intenta recargar la página.</p>
+        <h1 className="text-xl font-bold text-foreground">Algo salió mal</h1>
+        <p className="text-muted-foreground">
+          Ocurrió un error inesperado. Intenta recargar la página.
+        </p>
         <div className="space-y-3">
           <Button
             onClick={reset}

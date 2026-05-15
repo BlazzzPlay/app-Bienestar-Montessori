@@ -131,8 +131,8 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
         <DialogContent className="sm:max-w-md">
           <div className="text-center py-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">¡RUT actualizado!</h3>
-            <p className="text-gray-600">Tu RUT ha sido cambiado exitosamente.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">¡RUT actualizado!</h3>
+            <p className="text-muted-foreground">Tu RUT ha sido cambiado exitosamente.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -156,7 +156,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nuevo RUT */}
           <div className="space-y-2">
-            <Label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="new-password" className="text-sm font-medium text-muted-foreground">
               Nuevo RUT
             </Label>
             <div className="relative">
@@ -175,7 +175,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
               >
                 {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -184,7 +184,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
 
           {/* Confirmar RUT */}
           <div className="space-y-2">
-            <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="confirm-password" className="text-sm font-medium text-muted-foreground">
               Confirmar Nuevo RUT
             </Label>
             <div className="relative">
@@ -200,7 +200,7 @@ export default function CambiarContrasenaModal({ isOpen, onClose }: CambiarContr
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>

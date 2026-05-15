@@ -158,9 +158,9 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">No tienes notificaciones</p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                      <p className="text-muted-foreground">No tienes notificaciones</p>
+                      <p className="text-sm text-muted-foreground/60 mt-1">
                         Te notificaremos cuando haya nuevas actualizaciones.
                       </p>
                     </div>
@@ -184,9 +184,9 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <Check className="h-12 w-12 text-green-300 mx-auto mb-4" />
-                      <p className="text-gray-500">¡Todo al día!</p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <Check className="h-12 w-12 text-success/50 mx-auto mb-4" />
+                      <p className="text-muted-foreground">¡Todo al día!</p>
+                      <p className="text-sm text-muted-foreground/60 mt-1">
                         No tienes notificaciones sin leer.
                       </p>
                     </div>
@@ -211,8 +211,8 @@ export default function NotificationCenter({ isOpen, onClose }: NotificationCent
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">No hay notificaciones leídas</p>
+                      <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                      <p className="text-muted-foreground">No hay notificaciones leídas</p>
                     </div>
                   )}
                 </div>

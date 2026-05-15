@@ -94,9 +94,9 @@ export default function NotificationToast({
       case "medium":
         return "border-l-blue-500 bg-blue-50"
       case "low":
-        return "border-l-gray-500 bg-gray-50"
+        return "border-l-muted-foreground bg-muted/30"
       default:
-        return "border-l-gray-500 bg-gray-50"
+        return "border-l-muted-foreground bg-muted/30"
     }
   }
 
@@ -142,9 +142,13 @@ export default function NotificationToast({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900 truncate">{notification.title}</h4>
+              <h4 className="text-sm font-semibold text-foreground truncate">
+                {notification.title}
+              </h4>
 
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{notification.message}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                {notification.message}
+              </p>
 
               {/* Action button */}
               {notification.actionText && notification.actionUrl && (
@@ -165,7 +169,7 @@ export default function NotificationToast({
           <Button
             variant="ghost"
             size="sm"
-            className="p-1 h-auto text-gray-400 hover:text-gray-600"
+            className="p-1 h-auto text-muted-foreground/60 hover:text-muted-foreground"
             onClick={handleDismiss}
           >
             <X className="h-4 w-4" />

@@ -151,7 +151,8 @@ export default function DetalleBeneficioPage() {
                 <Badge
                   key={etiqueta}
                   variant="secondary"
-                  className={`text-xs px-2.5 py-0.5 rounded-full ${getTagColor(etiqueta)}`}
+                  className="text-xs px-2.5 py-0.5 rounded-full"
+                  style={getTagColor(etiqueta)}
                 >
                   {etiqueta}
                 </Badge>

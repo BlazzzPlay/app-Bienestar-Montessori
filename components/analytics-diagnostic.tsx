@@ -24,7 +24,7 @@ function Badge({
   variant?: "default" | "success" | "warning" | "error"
 }) {
   const variants = {
-    default: "bg-gray-100 text-gray-800",
+    default: "bg-muted text-muted-foreground",
     success: "bg-green-100 text-green-800",
     warning: "bg-yellow-100 text-yellow-800",
     error: "bg-red-100 text-red-800",
@@ -110,7 +110,7 @@ export default function AnalyticsDiagnostic() {
       case "not-detected":
         return <XCircle className="h-4 w-4 text-red-600" />
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-600" />
+        return <AlertCircle className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -148,7 +148,9 @@ export default function AnalyticsDiagnostic() {
                 {getStatusIcon(analyticsStatus)}
               </div>
               {getStatusBadge(analyticsStatus)}
-              <p className="text-xs text-gray-600 mt-2">Recopila datos de uso y comportamiento</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Recopila datos de uso y comportamiento
+              </p>
             </div>
 
             <div className="p-4 border rounded-lg">
@@ -157,12 +159,14 @@ export default function AnalyticsDiagnostic() {
                 {getStatusIcon(speedInsightsStatus)}
               </div>
               {getStatusBadge(speedInsightsStatus)}
-              <p className="text-xs text-gray-600 mt-2">Monitorea rendimiento y Core Web Vitals</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Monitorea rendimiento y Core Web Vitals
+              </p>
             </div>
           </div>
 
           {/* Información del entorno */}
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-muted rounded-lg">
             <h3 className="font-medium mb-3">Información del Entorno</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">

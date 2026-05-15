@@ -160,7 +160,8 @@ export default function BeneficiosPage() {
                         <Badge
                           key={etiqueta}
                           variant="secondary"
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagColor(etiqueta)}`}
+                          className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                          style={getTagColor(etiqueta)}
                         >
                           {etiqueta}
                         </Badge>

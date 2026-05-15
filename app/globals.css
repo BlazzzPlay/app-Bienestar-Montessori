@@ -16,8 +16,8 @@
     --secondary-foreground: 213 73% 16%;
     --muted: 216 20% 95%;
     --muted-foreground: 215 14% 36%;
-    --accent: 41 76% 49%;
-    --accent-foreground: 213 73% 16%;
+    --accent: 271 76% 53%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --success: 160 84% 37%;
@@ -28,6 +28,34 @@
     --input: 216 20% 90%;
     --ring: 213 73% 16%;
     --radius: 0.75rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    /* Tag colors — light mode */
+    --tag-orange: 24 95% 92%;
+    --tag-orange-text: 24 80% 35%;
+    --tag-green: 140 95% 92%;
+    --tag-green-text: 140 80% 30%;
+    --tag-blue: 217 95% 92%;
+    --tag-blue-text: 217 80% 35%;
+    --tag-purple: 271 95% 92%;
+    --tag-purple-text: 271 80% 35%;
+    --tag-red: 0 95% 92%;
+    --tag-red-text: 0 80% 35%;
+    --tag-teal: 173 95% 92%;
+    --tag-teal-text: 173 80% 30%;
+    --tag-indigo: 240 95% 92%;
+    --tag-indigo-text: 240 80% 35%;
+    --tag-pink: 330 95% 92%;
+    --tag-pink-text: 330 80% 35%;
+    --tag-yellow: 45 95% 92%;
+    --tag-yellow-text: 45 80% 35%;
+    --tag-emerald: 160 95% 92%;
+    --tag-emerald-text: 160 80% 30%;
+    --tag-gray: 216 20% 90%;
+    --tag-gray-text: 215 14% 36%;
   }
 
   .dark {
@@ -43,8 +71,8 @@
     --secondary-foreground: 213 73% 16%;
     --muted: 213 30% 20%;
     --muted-foreground: 215 20% 65%;
-    --accent: 41 76% 49%;
-    --accent-foreground: 213 73% 16%;
+    --accent: 271 76% 63%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --success: 160 60% 45%;
@@ -54,6 +82,34 @@
     --border: 213 30% 25%;
     --input: 213 30% 25%;
     --ring: 213 73% 50%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    /* Tag colors — dark mode */
+    --tag-orange: 24 40% 20%;
+    --tag-orange-text: 24 60% 80%;
+    --tag-green: 140 40% 20%;
+    --tag-green-text: 140 60% 80%;
+    --tag-blue: 217 40% 20%;
+    --tag-blue-text: 217 60% 80%;
+    --tag-purple: 271 40% 20%;
+    --tag-purple-text: 271 60% 80%;
+    --tag-red: 0 40% 20%;
+    --tag-red-text: 0 60% 80%;
+    --tag-teal: 173 40% 20%;
+    --tag-teal-text: 173 60% 80%;
+    --tag-indigo: 240 40% 20%;
+    --tag-indigo-text: 240 60% 80%;
+    --tag-pink: 330 40% 20%;
+    --tag-pink-text: 330 60% 80%;
+    --tag-yellow: 45 40% 20%;
+    --tag-yellow-text: 45 60% 80%;
+    --tag-emerald: 160 40% 20%;
+    --tag-emerald-text: 160 60% 80%;
+    --tag-gray: 213 30% 25%;
+    --tag-gray-text: 215 20% 65%;
   }
 }
 

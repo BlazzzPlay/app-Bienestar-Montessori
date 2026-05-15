@@ -39,10 +39,10 @@ export default function AuthGuard({ children, requiredRole = "authenticated" }: 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando autenticación...</p>
+          <p className="text-muted-foreground">Verificando autenticación...</p>
         </div>
       </div>
     )
@@ -50,10 +50,10 @@ export default function AuthGuard({ children, requiredRole = "authenticated" }: 
 
   if (authError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-lg shadow-md">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <div className="text-center bg-card p-8 rounded-lg shadow-md">
           <p className="text-red-600 font-medium mb-4">Error de Autenticación</p>
-          <p className="text-gray-600 mb-4">{authError}</p>
+          <p className="text-muted-foreground mb-4">{authError}</p>
           <Button
             onClick={() => {
               setAuthError(null)

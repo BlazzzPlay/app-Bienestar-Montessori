@@ -34,7 +34,7 @@ export default function FiltrosBeneficiosModal({
     { id: "deporte", label: "Deporte", color: "bg-blue-100 text-blue-800" },
     { id: "entretenimiento", label: "Entretenimiento", color: "bg-purple-100 text-purple-800" },
     { id: "educacion", label: "Educación", color: "bg-indigo-100 text-indigo-800" },
-    { id: "tecnologia", label: "Tecnología", color: "bg-gray-100 text-gray-800" },
+    { id: "tecnologia", label: "Tecnología", color: "bg-muted text-muted-foreground" },
     { id: "belleza", label: "Belleza", color: "bg-pink-100 text-pink-800" },
     { id: "hogar", label: "Hogar", color: "bg-yellow-100 text-yellow-800" },
     { id: "transporte", label: "Transporte", color: "bg-teal-100 text-teal-800" },
@@ -77,7 +77,7 @@ export default function FiltrosBeneficiosModal({
         <div className="space-y-4">
           {/* Contador de filtros seleccionados */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {filtrosTemp.length}{" "}
               {filtrosTemp.length === 1 ? "categoría seleccionada" : "categorías seleccionadas"}
             </span>
@@ -105,7 +105,7 @@ export default function FiltrosBeneficiosModal({
                   className={`relative flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
                     isSelected
                       ? "border-primary bg-primary/5"
-                      : "border-gray-200 hover:border-gray-300 bg-white"
+                      : "border-border hover:border-muted-foreground/30 bg-card"
                   }`}
                 >
                   <Badge
@@ -129,7 +129,7 @@ export default function FiltrosBeneficiosModal({
           {/* Filtros seleccionados */}
           {filtrosTemp.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">Filtros activos:</p>
+              <p className="text-sm font-medium text-muted-foreground">Filtros activos:</p>
               <div className="flex flex-wrap gap-2">
                 {filtrosTemp.map((filtroId) => {
                   const categoria = categorias.find((c) => c.id === filtroId)
