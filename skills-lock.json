@@ -14,7 +14,7 @@
     "deploy-flow": {
       "source": "bienestar-montessori/internal",
       "sourceType": "autoskills-registry",
-      "computedHash": "509a54b5e4fcf845a73d8522ee9168cba9e30e11e7ba12340b87608647537efa"
+      "computedHash": "d4ee9463c87d26e774dbeb889f75f5701b1b77e442a6054d9f7b49902f3a48ee"
     },
     "frontend-design": {
       "source": "anthropics/claude-code",
