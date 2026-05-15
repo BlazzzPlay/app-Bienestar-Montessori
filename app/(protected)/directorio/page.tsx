@@ -198,7 +198,7 @@ function PersonaCard({ persona }: { persona: Perfil }) {
             e.stopPropagation()
             window.location.href = `mailto:${persona.correo}`
           }}
-          title={`Enviar correo a ${persona.nombre_completo}`}
+          aria-label={`Enviar correo a ${persona.nombre_completo}`}
         >
           <Mail className="h-4 w-4" />
         </Button>
