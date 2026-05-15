@@ -11,10 +11,20 @@
       "sourceType": "autoskills-registry",
       "computedHash": "c124390cc3441844903ada94cb5820b23d922f2d0ad34e01e029e410197c8a32"
     },
-    "frontend-design": {
-      "source": "anthropics/skills",
+    "deploy-flow": {
+      "source": "bienestar-montessori/internal",
       "sourceType": "autoskills-registry",
-      "computedHash": "82fb11a63fb1e35ee2469516ed02d54695f783115b1540c0e783197af4240a3a"
+      "computedHash": "509a54b5e4fcf845a73d8522ee9168cba9e30e11e7ba12340b87608647537efa"
+    },
+    "frontend-design": {
+      "source": "anthropics/claude-code",
+      "sourceType": "autoskills-registry",
+      "computedHash": "8bf9905dbcd9b1edb47f2a44cadbb9bb66314f73a8e3631ec7feee913777ceb8"
+    },
+    "interface-design": {
+      "source": "Dammyjay93/interface-design",
+      "sourceType": "autoskills-registry",
+      "computedHash": "9bfdf30dcc1734541a87100dbc6c6eeb33249c6ccd09be85857e686aed6b8b97"
     },
     "next-best-practices": {
       "source": "vercel-labs/next-skills",
@@ -71,10 +81,20 @@
       "sourceType": "autoskills-registry",
       "computedHash": "551eb86a35cbf35747cc1a58059ed7e73aacdf03d2fd2e12f63208ea2c0a4ae9"
     },
+    "taste-skill": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "autoskills-registry",
+      "computedHash": "a23a9e4e74a87e3f458d53cbff60adbc666e7a1e8633d43f9e213111e48f69b0"
+    },
     "typescript-advanced-types": {
       "source": "wshobson/agents",
       "sourceType": "autoskills-registry",
       "computedHash": "5ca0e177c6aaaba1889255691224daafdb7d71f317cc70bede1590d3907ded42"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "autoskills-registry",
+      "computedHash": "9bd26c52dfd10dfd613dd3cc85df217dc25a172e380bde41fdfa6fedda288b2a"
     },
     "zod": {
       "source": "pproenca/dot-skills",

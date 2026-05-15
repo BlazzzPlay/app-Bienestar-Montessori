@@ -21,6 +21,7 @@ import ComentariosTab from "@/components/admin/tabs/comentarios-tab"
 import AsistenciaTab from "@/components/admin/tabs/asistencia-tab"
 import EstadisticasUsoTab from "@/components/admin/tabs/estadisticas-uso-tab"
 import NotificationCompose from "@/components/admin/notification-compose"
+import AdminNotificationBell from "@/components/notifications/admin-notification-bell"
 
 export default function AdminPage() {
   const { estadisticas, eventosConAsistencia, topBeneficios, loading, exportUsers, refetch } =
@@ -39,6 +40,7 @@ export default function AdminPage() {
               Gestioná el programa de Bienestar Montessori
             </p>
           </div>
+          <AdminNotificationBell />
           <Button
             variant="secondary"
             size="sm"

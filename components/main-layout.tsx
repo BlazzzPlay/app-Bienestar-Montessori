@@ -3,33 +3,12 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import {
-  Bell,
-  UserRound,
-  Gift,
-  CalendarDays,
-  Users,
-  Inbox,
-  LogOut,
-  Settings,
-  Sun,
-  Moon,
-} from "lucide-react"
+import { Bell, UserRound, Gift, CalendarDays, Users, Inbox, Shield, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { useTheme } from "next-themes"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { useNotificationSystem } from "@/hooks/useNotificationSystem"
 import NotificationCenter from "@/components/notifications/notification-center"
 
@@ -40,12 +19,11 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, title }: MainLayoutProps) {
   const [activeTab, setActiveTab] = useState("perfil")
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const { unreadCount } = useNotificationSystem()
   const [showNotificationCenter, setShowNotificationCenter] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const { signOut, profile, hasFullAccess, isInDevelopment } = useAuth()
+  const { profile, hasFullAccess } = useAuth()
   const { resolvedTheme, setTheme } = useTheme()
 
   useEffect(() => {
@@ -54,38 +32,15 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
     if (pathname.includes("/eventos")) setActiveTab("eventos")
     if (pathname.includes("/directorio")) setActiveTab("directorio")
     if (pathname.includes("/sugerencias")) setActiveTab("sugerencias")
-    if (pathname.includes("/admin")) setActiveTab("admin")
   }, [pathname])
 
-  const allTabs = [
+  const tabs = [
     { id: "perfil", label: "Perfil", icon: UserRound },
     { id: "beneficios", label: "Beneficios", icon: Gift },
     { id: "eventos", label: "Eventos", icon: CalendarDays },
     { id: "directorio", label: "Directorio", icon: Users },
     { id: "sugerencias", label: "Sugerencias", icon: Inbox },
   ]
-
-  // Agregar tab de admin solo para administradores
-  const adminTab = { id: "admin", label: "Admin", icon: Settings }
-
-  // Filtrar tabs según el acceso durante desarrollo
-  let tabs =
-    isInDevelopment && !hasFullAccess()
-      ? allTabs.filter((tab) => tab.id === "perfil") // Solo mostrar perfil para usuarios regulares
-      : allTabs // Mostrar todas las tabs para administradores o cuando no esté en desarrollo
-
-  // Agregar tab de admin para administradores
-  if (hasFullAccess()) {
-    tabs = [...tabs, adminTab]
-  }
-
-  const handleLogout = async () => {
-    const { error } = await signOut()
-    if (!error) {
-      router.push("/login")
-    }
-    setShowLogoutDialog(false)
-  }
 
   const handleNotificacionesClick = () => {
     setShowNotificationCenter(true)
@@ -107,13 +62,51 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between"
       >
         <h1 className="text-lg font-semibold">{title}</h1>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           {/* Saludo personalizado */}
           {profile && (
-            <span className="text-sm text-primary-foreground/80 hidden sm:block">
+            <span className="text-sm text-primary-foreground/80 hidden sm:block mr-2">
               Hola, {profile.nombre_completo.split(" ")[0]}
             </span>
           )}
+
+          {/* Admin - solo para administradores */}
+          {hasFullAccess() && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 text-primary-foreground/80 hover:text-primary-foreground"
+              aria-label="Panel de administración"
+              type="button"
+              onClick={() => router.push("/admin")}
+            >
+              <Shield className="h-5 w-5" />
+            </Button>
+          )}
+
+          {/* Botón de notificaciones */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2"
+              type="button"
+              aria-label={
+                unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"
+              }
+              onClick={handleNotificacionesClick}
+            >
+              <Bell className="h-5 w-5" />
+            </Button>
+            {unreadCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 hover:bg-red-500"
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Badge>
+            )}
+          </div>
 
           {/* Botón de tema */}
           <Button
@@ -126,32 +119,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
           >
             {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-
-          {/* Botón de notificaciones - visible para todos los usuarios autenticados */}
-          {profile && (
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2"
-                type="button"
-                aria-label={
-                  unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : "Notificaciones"
-                }
-                onClick={handleNotificacionesClick}
-              >
-                <Bell className="h-5 w-5 text-gray-600" />
-              </Button>
-              {unreadCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 hover:bg-red-500"
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </header>
 
@@ -160,10 +127,10 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         {children}
       </main>
 
-      {/* Barra de Navegación Inferior */}
+      {/* Barra de Navegación Inferior — 5 botones fijos */}
       <nav
         aria-label="Navegación principal"
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 py-2"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-border px-2 py-2 dark:bg-gray-950 dark:border-gray-800"
       >
         <div className="flex items-center justify-around">
           {tabs.map((tab) => {
@@ -181,7 +148,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                   if (tab.id === "eventos") router.push("/eventos")
                   if (tab.id === "directorio") router.push("/directorio")
                   if (tab.id === "sugerencias") router.push("/sugerencias")
-                  if (tab.id === "admin") router.push("/admin")
                 }}
                 className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
                   isActive
@@ -194,17 +160,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
               </button>
             )
           })}
-
-          {/* Botón de Cerrar Sesión */}
-          <button
-            type="button"
-            aria-label="Cerrar sesión"
-            onClick={() => setShowLogoutDialog(true)}
-            className="flex flex-col items-center justify-center p-2 rounded-lg transition-colors text-destructive hover:text-destructive/80 hover:bg-destructive/5"
-          >
-            <LogOut className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Salir</span>
-          </button>
         </div>
       </nav>
 
@@ -213,28 +168,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         isOpen={showNotificationCenter}
         onClose={() => setShowNotificationCenter(false)}
       />
-
-      {/* Dialog de confirmación para cerrar sesión */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a iniciar sesión
-              para acceder a la aplicación.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleLogout}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              Cerrar Sesión
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

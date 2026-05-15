@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,6 +11,7 @@ import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfile } from "@/hooks/useProfile"
 import { getFileUrl } from "@/lib/pocketbase"
+import { getVersionDisplay } from "@/lib/version"
 import {
   Sparkles,
   Heart,
@@ -22,14 +24,35 @@ import {
   Gift,
   Shield,
   Camera,
+  LogOut,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function PerfilPage() {
-  const { refreshProfile } = useAuth()
+  const router = useRouter()
+  const { refreshProfile, signOut } = useAuth()
   const { data, loading } = useProfile()
   const [showCambiarFoto, setShowCambiarFoto] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [clickCount, setClickCount] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
+
+  const handleLogout = async () => {
+    const { error } = await signOut()
+    if (!error) {
+      router.push("/login")
+    }
+    setShowLogoutDialog(false)
+  }
 
   const profile = data?.profile
   const beneficiosUtilizados = data?.beneficiosUtilizados ?? 0
@@ -253,6 +276,23 @@ export default function PerfilPage() {
         )}
       </div>
 
+      {/* ── Cerrar Sesión ── */}
+      <div className="pt-4 border-t border-border">
+        <Button
+          variant="outline"
+          className="w-full text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+          onClick={() => setShowLogoutDialog(true)}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Cerrar Sesión
+        </Button>
+      </div>
+
+      {/* ── Versión ── */}
+      <p className="text-[10px] text-muted-foreground/30 text-center select-none">
+        {getVersionDisplay()}
+      </p>
+
       {/* ── Modal ── */}
       <CambiarFotoModal
         isOpen={showCambiarFoto}
@@ -261,6 +301,28 @@ export default function PerfilPage() {
         userName={profile.nombre_completo}
         onSuccess={refreshProfile}
       />
+
+      {/* ── Confirmación de Cerrar Sesión ── */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a iniciar sesión
+              para acceder a la aplicación.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Cerrar Sesión
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   )
 }

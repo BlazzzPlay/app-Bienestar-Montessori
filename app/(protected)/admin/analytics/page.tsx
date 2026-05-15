@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAdmin } from "@/hooks/useAdmin"
 import { database } from "@/lib/database"
 import AnalyticsDiagnostic from "@/components/analytics-diagnostic"
+import AdminNotificationBell from "@/components/notifications/admin-notification-bell"
 
 interface RecentComment {
   id: string
@@ -108,6 +109,7 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <AdminNotificationBell />
             <Badge
               variant="secondary"
               className="bg-primary-foreground/20 text-primary-foreground border-0"

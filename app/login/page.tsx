@@ -4,10 +4,21 @@ import { Suspense, useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import { signIn } from "@/lib/pocketbase-auth"
+import { getVersionDisplay } from "@/lib/version"
 
 const DEV_USERS = [
-  { label: "María G.", email: "admin@colegiomontessori.cl", password: "test123456", rol: "Administradora" },
-  { label: "Pedro M.", email: "user@colegiomontessori.cl", password: "test123456", rol: "Beneficiario" },
+  {
+    label: "María G.",
+    email: "admin@colegiomontessori.cl",
+    password: "test123456",
+    rol: "Administradora",
+  },
+  {
+    label: "Pedro M.",
+    email: "user@colegiomontessori.cl",
+    password: "test123456",
+    rol: "Beneficiario",
+  },
 ]
 
 function LoginForm() {
@@ -59,19 +70,22 @@ function LoginForm() {
     [email, password, redirectAfterLogin],
   )
 
-  const quickLogin = useCallback(async (user: (typeof DEV_USERS)[number]) => {
-    setEmail(user.email)
-    setPassword(user.password)
-    setError(null)
-    setLoading(true)
-    const { error: signInError } = await signIn(user.email, user.password)
-    setLoading(false)
-    if (signInError) {
-      setError(signInError.message)
-    } else {
-      redirectAfterLogin()
-    }
-  }, [redirectAfterLogin])
+  const quickLogin = useCallback(
+    async (user: (typeof DEV_USERS)[number]) => {
+      setEmail(user.email)
+      setPassword(user.password)
+      setError(null)
+      setLoading(true)
+      const { error: signInError } = await signIn(user.email, user.password)
+      setLoading(false)
+      if (signInError) {
+        setError(signInError.message)
+      } else {
+        redirectAfterLogin()
+      }
+    },
+    [redirectAfterLogin],
+  )
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -157,6 +171,11 @@ function LoginForm() {
             ))}
           </div>
         </div>
+
+        {/* ── Versión ── */}
+        <p className="text-[10px] text-muted-foreground/50 text-center mt-8 select-none">
+          {getVersionDisplay()}
+        </p>
       </div>
     </div>
   )
