@@ -1,6 +1,3 @@
-# Referencia: config del servicio PocketBase en Dokploy
-# Copiá esto al panel de Dokploy → servicio pocketbase
-
 version: "3.8"
 services:
   pocketbase:
