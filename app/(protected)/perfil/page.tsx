@@ -1,13 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import MainLayout from "@/components/main-layout"
-import CambiarFotoModal from "@/components/modals/cambiar-foto-modal"
 import { useAuth } from "@/hooks/useAuth"
 import { useProfile } from "@/hooks/useProfile"
 import { getFileUrl } from "@/lib/pocketbase"
@@ -16,6 +15,8 @@ import {
   Sparkles,
   Heart,
   Star,
+  PartyPopper,
+  Cake,
   Info,
   Briefcase,
   Calendar,
@@ -23,7 +24,6 @@ import {
   Hash,
   Gift,
   Shield,
-  Camera,
   LogOut,
 } from "lucide-react"
 import {
@@ -39,12 +39,35 @@ import {
 
 export default function PerfilPage() {
   const router = useRouter()
-  const { refreshProfile, signOut } = useAuth()
+  const { signOut } = useAuth()
   const { data, loading } = useProfile()
-  const [showCambiarFoto, setShowCambiarFoto] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [clickCount, setClickCount] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
+  const [showBirthdayEgg, setShowBirthdayEgg] = useState(false)
+  const [showAnniversaryEgg, setShowAnniversaryEgg] = useState(false)
+
+  // ── Auto easter eggs: cumpleaños y aniversario laboral ──
+  useEffect(() => {
+    if (!data?.profile) return
+
+    const birthdayMatch = isSameMonthDay(data.profile.fecha_nacimiento)
+    const anniversaryMatch = isSameMonthDay(data.profile.fecha_ingreso)
+    const timers: NodeJS.Timeout[] = []
+
+    if (birthdayMatch) {
+      timers.push(setTimeout(() => setShowBirthdayEgg(true), 800))
+      timers.push(setTimeout(() => setShowBirthdayEgg(false), 5000))
+    }
+    if (anniversaryMatch) {
+      const delay = birthdayMatch ? 5500 : 800
+      timers.push(setTimeout(() => setShowAnniversaryEgg(true), delay))
+      timers.push(setTimeout(() => setShowAnniversaryEgg(false), delay + 5000))
+    }
+
+    return () => timers.forEach(clearTimeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.profile?.id])
 
   const handleLogout = async () => {
     const { error } = await signOut()
@@ -128,7 +151,7 @@ export default function PerfilPage() {
       <div className="p-4 space-y-4 max-w-2xl mx-auto">
         {/* ── Avatar + Name Card ── */}
         <Card className="relative overflow-hidden border-0 shadow-lg">
-          {/* Easter Egg */}
+          {/* Easter Egg: 10 clicks */}
           {showEasterEgg && (
             <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary/80 z-10 flex items-center justify-center animate-in fade-in">
               <div className="text-center text-primary-foreground animate-bounce">
@@ -139,6 +162,40 @@ export default function PerfilPage() {
                 </div>
                 <p className="text-xl font-bold">¡Eres increíble!</p>
                 <p className="text-sm opacity-80">🎉 Easter egg desbloqueado 🎉</p>
+              </div>
+            </div>
+          )}
+
+          {/* Easter Egg: Cumpleaños */}
+          {showBirthdayEgg && (
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 z-10 flex items-center justify-center animate-in fade-in">
+              <div className="text-center text-white">
+                <div className="flex justify-center space-x-3 mb-3">
+                  <Cake className="h-10 w-10 animate-bounce" />
+                  <PartyPopper className="h-10 w-10 animate-ping" />
+                  <Cake className="h-10 w-10 animate-bounce" />
+                </div>
+                <p className="text-2xl font-bold">¡Feliz Cumpleaños!</p>
+                <p className="text-sm mt-1 opacity-90">Que tengas un día maravilloso 🎂</p>
+              </div>
+            </div>
+          )}
+
+          {/* Easter Egg: Aniversario laboral */}
+          {showAnniversaryEgg && (
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-600 z-10 flex items-center justify-center animate-in fade-in">
+              <div className="text-center text-white">
+                <div className="flex justify-center space-x-3 mb-3">
+                  <Star className="h-10 w-10 animate-ping" />
+                  <Sparkles className="h-10 w-10 animate-spin" />
+                  <Star className="h-10 w-10 animate-ping" />
+                </div>
+                <p className="text-2xl font-bold">¡Feliz Aniversario!</p>
+                <p className="text-sm mt-1 opacity-90">
+                  {profile.fecha_ingreso
+                    ? `${new Date().getFullYear() - new Date(profile.fecha_ingreso).getFullYear()} años en el colegio 🎉`
+                    : "Gracias por tu dedicación 🎉"}
+                </p>
               </div>
             </div>
           )}
@@ -229,6 +286,19 @@ export default function PerfilPage() {
             </h3>
 
             <InfoRow icon={Hash} label="RUT" value={profile.rut || "No registrado"} />
+            <InfoRow
+              icon={Cake}
+              label="Nacimiento"
+              value={
+                profile.fecha_nacimiento
+                  ? new Date(profile.fecha_nacimiento).toLocaleDateString("es-ES", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "No registrada"
+              }
+            />
             <InfoRow icon={Briefcase} label="Cargo" value={profile.cargo || "No registrado"} />
             <InfoRow
               icon={Calendar}
@@ -248,22 +318,6 @@ export default function PerfilPage() {
             )}
           </CardContent>
         </Card>
-
-        {/* ── Admin Actions ── */}
-        {profile.rol === "Administrador" && (
-          <Card className="border-0 shadow-sm bg-muted/30">
-            <CardContent className="p-5">
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => setShowCambiarFoto(true)}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Cambiar Foto de Perfil
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* ── Non-admin info ── */}
         {profile.rol !== "Administrador" && (
@@ -292,15 +346,6 @@ export default function PerfilPage() {
       <p className="text-[10px] text-muted-foreground/30 text-center select-none">
         {getVersionDisplay()}
       </p>
-
-      {/* ── Modal ── */}
-      <CambiarFotoModal
-        isOpen={showCambiarFoto}
-        onClose={() => setShowCambiarFoto(false)}
-        currentAvatar={getFileUrl(profile, profile.avatar)}
-        userName={profile.nombre_completo}
-        onSuccess={refreshProfile}
-      />
 
       {/* ── Confirmación de Cerrar Sesión ── */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
@@ -352,4 +397,11 @@ function validateProfileData(profile: any): boolean {
   if (!profile.nombre_completo || profile.nombre_completo.trim() === "") return false
   if (!profile.rol) return false
   return true
+}
+
+function isSameMonthDay(dateStr: string | undefined): boolean {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  const today = new Date()
+  return d.getDate() === today.getDate() && d.getMonth() === today.getMonth()
 }

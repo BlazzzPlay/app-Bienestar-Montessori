@@ -464,7 +464,7 @@ export const database = {
   async getEstadisticasUsuario(usuarioId: string) {
     try {
       const result = await pb()
-        .collection("comentarios_beneficios")
+        .collection("usos_beneficio")
         .getList(1, 1, { filter: `usuario="${usuarioId}"` })
       return { beneficiosUtilizados: result.totalItems, error: null }
     } catch (e: any) {
