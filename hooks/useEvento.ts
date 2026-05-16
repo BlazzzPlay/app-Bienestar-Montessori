@@ -4,11 +4,18 @@ import { useState, useEffect, useCallback } from "react"
 import { database } from "@/lib/database"
 import type { Publicacion, ComentarioPublicacion } from "@/lib/pocketbase"
 
+interface Asistente {
+  id: string
+  nombre: string
+  avatar?: string
+}
+
 export function useEvento(id: string, userId?: string) {
   const [event, setEvent] = useState<Publicacion | null>(null)
   const [comments, setComments] = useState<
     (ComentarioPublicacion & { perfiles?: { nombre_completo: string; avatar_url?: string } })[]
   >([])
+  const [asistentes, setAsistentes] = useState<Asistente[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAttending, setIsAttending] = useState(false)
@@ -18,14 +25,22 @@ export function useEvento(id: string, userId?: string) {
     setLoading(true)
     setError(null)
     try {
-      const [eventResult, commentsResult] = await Promise.all([
+      const [eventResult, commentsResult, asistenciasResult] = await Promise.all([
         database.getPublicacion(id),
         database.getComentariosPublicacion(id),
+        database.getAsistenciasPorEvento(id),
       ])
       if (eventResult.error) throw eventResult.error
       if (commentsResult.error) throw commentsResult.error
       setEvent(eventResult.data)
       setComments(commentsResult.data || [])
+      setAsistentes(
+        (asistenciasResult.data || []).map((a) => ({
+          id: a.id,
+          nombre: a.perfiles?.nombre_completo || "Usuario desconocido",
+          avatar: a.perfiles?.avatar_url,
+        })),
+      )
     } catch (e: any) {
       setError(e.message || "Error al cargar el evento")
     } finally {
@@ -72,14 +87,16 @@ export function useEvento(id: string, userId?: string) {
       const { error } = await database.confirmarAsistenciaEvento(id, userId)
       if (error) throw error
       setIsAttending(true)
+      await fetch() // Refresh to get updated attendee list
     } finally {
       setAttendanceLoading(false)
     }
-  }, [id, userId])
+  }, [id, userId, fetch])
 
   return {
     event,
     comments,
+    asistentes,
     loading,
     error,
     refetch: fetch,

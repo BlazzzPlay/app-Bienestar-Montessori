@@ -50,6 +50,7 @@ export interface Publicacion extends RecordModel {
   lugar?: string
   organizador?: string
   imagen?: string
+  cupo_maximo?: number
 }
 
 export interface ComentarioBeneficio extends RecordModel {

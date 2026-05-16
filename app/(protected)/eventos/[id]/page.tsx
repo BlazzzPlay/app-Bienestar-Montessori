@@ -11,12 +11,15 @@ import {
   Clock,
   MapPin,
   User,
+  Users,
   MessageSquare,
   CheckCircle2,
   XCircle,
   Send,
   Loader2,
   CalendarPlus,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import MainLayout from "@/components/main-layout"
 import { Button } from "@/components/ui/button"
@@ -24,6 +27,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { useEvento } from "@/hooks/useEvento"
@@ -52,6 +56,7 @@ export default function DetalleEventoPage() {
   const {
     event,
     comments,
+    asistentes,
     loading,
     error,
     refetch,
@@ -62,6 +67,7 @@ export default function DetalleEventoPage() {
   } = useEvento(id, user?.id)
   const [nuevoComentario, setNuevoComentario] = useState("")
   const [comentarioEnviado, setComentarioEnviado] = useState(false)
+  const [verAsistentes, setVerAsistentes] = useState(false)
   const [mostrarPendientes, setMostrarPendientes] = useState(false)
 
   const comentariosFiltrados = comments.filter(
@@ -254,6 +260,73 @@ export default function DetalleEventoPage() {
                 <CalendarPlus className="h-5 w-5 mr-2" />
                 Agregar a Calendario
               </Button>
+            </div>
+          )}
+
+          {/* ── Attendance Progress ── */}
+          {event.categoria === "Evento" && asistentes.length > 0 && (
+            <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4 text-secondary" />
+                  Confirmados
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {asistentes.length}
+                  {event.cupo_maximo ? ` / ${event.cupo_maximo}` : ""}
+                </span>
+              </div>
+              <Progress
+                value={
+                  event.cupo_maximo
+                    ? Math.min((asistentes.length / event.cupo_maximo) * 100, 100)
+                    : Math.min(asistentes.length * 10, 100)
+                }
+                className="h-2.5"
+                aria-label={`${asistentes.length} confirmados${event.cupo_maximo ? ` de ${event.cupo_maximo}` : ""}`}
+              />
+              {canModerate && asistentes.length > 0 && (
+                <div className="pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setVerAsistentes(!verAsistentes)}
+                    className="text-xs text-muted-foreground h-8 rounded-lg -ml-2"
+                    aria-label={
+                      verAsistentes ? "Ocultar lista de asistentes" : "Ver quién confirmó"
+                    }
+                  >
+                    {verAsistentes ? (
+                      <ChevronUp className="h-3.5 w-3.5 mr-1" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 mr-1" />
+                    )}
+                    Ver quién confirmó
+                  </Button>
+
+                  {verAsistentes && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                      {asistentes.map((a) => (
+                        <Card key={a.id} className="border-0 shadow-sm">
+                          <CardContent className="p-2.5 flex items-center gap-2.5">
+                            <Avatar className="h-7 w-7">
+                              <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                                {a.nombre
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium truncate">{a.nombre}</span>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
