@@ -157,6 +157,20 @@ export default function DetalleEventoPage() {
   return (
     <MainLayout title={event.titulo}>
       <div className="max-w-2xl mx-auto">
+        {/* ── Back button ── */}
+        <div className="px-4 pt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="h-9 rounded-xl text-muted-foreground hover:text-foreground -ml-2"
+            aria-label="Volver a eventos"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Volver
+          </Button>
+        </div>
+
         {/* ── Hero Image ── */}
         <div className="aspect-[16/9] sm:aspect-[2/1] bg-muted">
           <img
