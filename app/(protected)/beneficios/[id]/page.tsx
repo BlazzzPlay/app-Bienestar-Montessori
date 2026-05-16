@@ -3,7 +3,17 @@
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { MapPin, CheckCircle2, ArrowLeft, Users, MessageSquare, Send, Loader2 } from "lucide-react"
+import {
+  MapPin,
+  CheckCircle2,
+  ArrowLeft,
+  Users,
+  MessageSquare,
+  Send,
+  Loader2,
+  Instagram,
+  Globe,
+} from "lucide-react"
 import MainLayout from "@/components/main-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -112,6 +122,20 @@ export default function DetalleBeneficioPage() {
   return (
     <MainLayout title={beneficio.nombre_empresa}>
       <div className="max-w-2xl mx-auto">
+        {/* ── Back button ── */}
+        <div className="px-4 pt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="h-9 rounded-xl text-muted-foreground hover:text-foreground -ml-2"
+            aria-label="Volver a beneficios"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Volver
+          </Button>
+        </div>
+
         {/* ── Hero Image ── */}
         <div className="aspect-[16/9] sm:aspect-[2/1] bg-muted">
           <img
@@ -160,13 +184,53 @@ export default function DetalleBeneficioPage() {
             </div>
           )}
 
-          {/* ── Location ── */}
+          {/* ── Location → Maps ── */}
           {beneficio.direccion && (
-            <div className="flex items-start gap-3 bg-muted/50 rounded-xl p-4">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(beneficio.direccion)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-3 bg-muted/50 rounded-xl p-4 hover:bg-muted/70 transition-colors group"
+            >
               <MapPin className="h-5 w-5 text-secondary mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">Ubicación</p>
-                <p className="text-sm text-muted-foreground">{beneficio.direccion}</p>
+                <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  {beneficio.direccion}
+                </p>
+              </div>
+            </a>
+          )}
+
+          {/* ── Social Links ── */}
+          {(beneficio.instagram_url || beneficio.website_url) && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Links
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {beneficio.instagram_url && (
+                  <a
+                    href={beneficio.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-muted/50 hover:bg-muted/70 rounded-xl px-4 py-2.5 text-sm text-foreground/80 hover:text-foreground transition-colors"
+                  >
+                    <Instagram className="h-4 w-4 text-secondary" />
+                    Instagram
+                  </a>
+                )}
+                {beneficio.website_url && (
+                  <a
+                    href={beneficio.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-muted/50 hover:bg-muted/70 rounded-xl px-4 py-2.5 text-sm text-foreground/80 hover:text-foreground transition-colors"
+                  >
+                    <Globe className="h-4 w-4 text-secondary" />
+                    Sitio Web
+                  </a>
+                )}
               </div>
             </div>
           )}

@@ -31,6 +31,8 @@ export interface Beneficio extends RecordModel {
   descripcion_corta: string
   descripcion_larga?: string
   direccion?: string
+  instagram_url?: string
+  website_url?: string
   etiquetas: string[]
   foto_local?: string
   fecha_inicio?: string
