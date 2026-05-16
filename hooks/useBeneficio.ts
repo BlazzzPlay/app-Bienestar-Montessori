@@ -77,8 +77,8 @@ export function useBeneficio(
       setCommentLoading(true)
       try {
         const { data: nuevoComentario, error } = await database.createComentarioBeneficio({
-          beneficio_id: id,
-          usuario_id: userId,
+          beneficio: id,
+          usuario: userId,
           contenido,
         })
         if (error) throw error
@@ -86,8 +86,8 @@ export function useBeneficio(
         const optimisticComment: ComentarioConPerfil = {
           id: nuevoComentario?.id ?? Date.now(),
           contenido: nuevoComentario?.contenido ?? contenido,
-          beneficio_id: nuevoComentario?.beneficio_id ?? id,
-          usuario_id: nuevoComentario?.usuario_id ?? userId,
+          beneficio: nuevoComentario?.beneficio ?? id,
+          usuario: nuevoComentario?.usuario ?? userId,
           estado: "pendiente",
           fecha_creacion: nuevoComentario?.fecha_creacion ?? new Date().toISOString(),
           perfiles: perfil

@@ -38,7 +38,7 @@ async function wrapList<T>(
 }
 
 function normalizeExpand(item: any): { nombre_completo: string; avatar_url?: string } | undefined {
-  const expanded = item.expand?.usuario_id
+  const expanded = item.expand?.usuario
   if (!expanded) return undefined
   return {
     nombre_completo: expanded.nombre_completo,
@@ -107,8 +107,8 @@ export const database = {
   async registrarUsoBeneficio(beneficioId: string, usuarioId: string) {
     try {
       await pb().collection("usos_beneficio").create({
-        beneficio_id: beneficioId,
-        usuario_id: usuarioId,
+        beneficio: beneficioId,
+        usuario: usuarioId,
       })
       await pb().collection("beneficios").update(beneficioId, { "contador_usos+": 1 })
       return this.getBeneficio(beneficioId)
@@ -147,8 +147,8 @@ export const database = {
   async confirmarAsistenciaEvento(publicacionId: string, usuarioId: string) {
     try {
       await pb().collection("asistencias_evento").create({
-        publicacion_id: publicacionId,
-        usuario_id: usuarioId,
+        publicacion: publicacionId,
+        usuario: usuarioId,
         confirmado: true,
       })
       return { data: true, error: null }
@@ -179,7 +179,7 @@ export const database = {
     try {
       const items = await pb()
         .collection("comentarios_beneficios")
-        .getFullList({ filter, expand: "usuario_id", sort: "-fecha_creacion" })
+        .getFullList({ filter, expand: "usuario", sort: "-fecha_creacion" })
 
       const normalized = items.map((item: any) => ({
         ...item,
@@ -197,17 +197,12 @@ export const database = {
     }
   },
 
-  async createComentarioBeneficio(
-    comentario: Omit<
-      ComentarioBeneficio,
-      "id" | "fecha_creacion" | "estado" | "collectionId" | "collectionName"
-    >,
-  ) {
+  async createComentarioBeneficio(data: { beneficio: string; usuario: string; contenido: string }) {
     return wrapSingle(
       () =>
         pb()
           .collection("comentarios_beneficios")
-          .create({ ...comentario, estado: "pendiente" }) as Promise<ComentarioBeneficio>,
+          .create({ ...data, estado: "pendiente" }) as Promise<ComentarioBeneficio>,
     )
   },
 
@@ -230,7 +225,7 @@ export const database = {
     try {
       const items = await pb()
         .collection("comentarios_publicaciones")
-        .getFullList({ filter, expand: "usuario_id", sort: "-fecha_creacion" })
+        .getFullList({ filter, expand: "usuario", sort: "-fecha_creacion" })
 
       const normalized = items.map((item: any) => ({
         ...item,
@@ -248,17 +243,16 @@ export const database = {
     }
   },
 
-  async createComentarioPublicacion(
-    comentario: Omit<
-      ComentarioPublicacion,
-      "id" | "fecha_creacion" | "estado" | "collectionId" | "collectionName"
-    >,
-  ) {
+  async createComentarioPublicacion(data: {
+    publicacion: string
+    usuario: string
+    contenido: string
+  }) {
     return wrapSingle(
       () =>
         pb()
           .collection("comentarios_publicaciones")
-          .create({ ...comentario, estado: "pendiente" }) as Promise<ComentarioPublicacion>,
+          .create({ ...data, estado: "pendiente" }) as Promise<ComentarioPublicacion>,
     )
   },
 
@@ -300,7 +294,7 @@ export const database = {
     try {
       const items = await pb().collection("comentarios_beneficios").getFullList({
         filter: 'estado="pendiente"',
-        expand: "usuario_id",
+        expand: "usuario",
         sort: "-fecha_creacion",
       })
 
@@ -324,7 +318,7 @@ export const database = {
     try {
       const items = await pb().collection("comentarios_publicaciones").getFullList({
         filter: 'estado="pendiente"',
-        expand: "usuario_id",
+        expand: "usuario",
         sort: "-fecha_creacion",
       })
 
@@ -370,7 +364,7 @@ export const database = {
         .collection("asistencias_evento")
         .getFullList({
           filter: `publicacion="${publicacionId}" && confirmado=true`,
-          expand: "usuario_id",
+          expand: "usuario",
           sort: "-id",
         })
 
@@ -406,10 +400,10 @@ export const database = {
       const [beneficiosRes, publicacionesRes] = await Promise.all([
         pb()
           .collection("comentarios_beneficios")
-          .getList(1, limit, { expand: "usuario_id", sort: "-fecha_creacion" }),
+          .getList(1, limit, { expand: "usuario", sort: "-fecha_creacion" }),
         pb()
           .collection("comentarios_publicaciones")
-          .getList(1, limit, { expand: "usuario_id", sort: "-fecha_creacion" }),
+          .getList(1, limit, { expand: "usuario", sort: "-fecha_creacion" }),
       ])
 
       const beneficios = beneficiosRes.items.map((item: any) => ({
@@ -574,7 +568,7 @@ export const database = {
         await pb()
           .collection("notificaciones")
           .create({
-            usuario_id: user.id,
+            usuario: user.id,
             titulo,
             mensaje,
             tipo,

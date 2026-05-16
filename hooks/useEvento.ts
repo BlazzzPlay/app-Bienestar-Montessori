@@ -54,8 +54,8 @@ export function useEvento(id: string, userId?: string) {
   const submitComment = useCallback(
     async (contenido: string, usuarioId: string) => {
       const { data, error } = await database.createComentarioPublicacion({
-        publicacion_id: id,
-        usuario_id: usuarioId,
+        publicacion: id,
+        usuario: usuarioId,
         contenido,
       })
       if (error) throw error

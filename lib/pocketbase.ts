@@ -54,16 +54,16 @@ export interface Publicacion extends RecordModel {
 
 export interface ComentarioBeneficio extends RecordModel {
   contenido: string
-  beneficio_id: string
-  usuario_id: string
+  beneficio: string
+  usuario: string
   estado: "pendiente" | "aprobado" | "archivado"
   fecha_creacion: string
 }
 
 export interface ComentarioPublicacion extends RecordModel {
   contenido: string
-  publicacion_id: string
-  usuario_id: string
+  publicacion: string
+  usuario: string
   estado: "pendiente" | "aprobado" | "archivado"
   fecha_creacion: string
 }
@@ -75,19 +75,19 @@ export interface Sugerencia extends RecordModel {
 }
 
 export interface AsistenciaEvento extends RecordModel {
-  publicacion_id: string
-  usuario_id: string
+  publicacion: string
+  usuario: string
   confirmado: boolean
 }
 
 export interface UsoBeneficio extends RecordModel {
-  beneficio_id: string
-  usuario_id: string
+  beneficio: string
+  usuario: string
   fecha_uso: string
 }
 
 export interface Notificacion extends RecordModel {
-  usuario_id: string
+  usuario: string
   creado_por?: string
   tipo: "beneficio" | "evento" | "comentario" | "sistema" | "bienvenida"
   titulo: string

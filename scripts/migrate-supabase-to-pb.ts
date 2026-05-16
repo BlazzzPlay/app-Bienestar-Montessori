@@ -249,17 +249,17 @@ async function migrateComentariosBeneficios() {
   }
 
   for (const c of comentarios) {
-    const newUserId = userMap.get(c.usuario_id)
+    const newUserId = userMap.get(c.usuario)
     if (!newUserId) {
-      logSkip(`Skipping comentario ${c.id}: usuario_id ${c.usuario_id} not mapped`)
+      logSkip(`Skipping comentario ${c.id}: usuario ${c.usuario} not mapped`)
       continue
     }
 
     try {
       await pb.collection("comentarios_beneficios").create({
         contenido: c.contenido,
-        beneficio_id: String(c.beneficio_id),
-        usuario_id: newUserId,
+        beneficio: String(c.beneficio),
+        usuario: newUserId,
         estado: c.estado,
         fecha_creacion: c.fecha_creacion,
       })
@@ -290,17 +290,17 @@ async function migrateComentariosPublicaciones() {
   }
 
   for (const c of comentarios) {
-    const newUserId = userMap.get(c.usuario_id)
+    const newUserId = userMap.get(c.usuario)
     if (!newUserId) {
-      logSkip(`Skipping comentario ${c.id}: usuario_id ${c.usuario_id} not mapped`)
+      logSkip(`Skipping comentario ${c.id}: usuario ${c.usuario} not mapped`)
       continue
     }
 
     try {
       await pb.collection("comentarios_publicaciones").create({
         contenido: c.contenido,
-        publicacion_id: String(c.publicacion_id),
-        usuario_id: newUserId,
+        publicacion: String(c.publicacion),
+        usuario: newUserId,
         estado: c.estado,
         fecha_creacion: c.fecha_creacion,
       })
@@ -364,16 +364,16 @@ async function migrateAsistenciasEvento() {
   }
 
   for (const a of asistencias) {
-    const newUserId = userMap.get(a.usuario_id)
+    const newUserId = userMap.get(a.usuario)
     if (!newUserId) {
-      logSkip(`Skipping asistencia ${a.created_at}: usuario_id ${a.usuario_id} not mapped`)
+      logSkip(`Skipping asistencia ${a.created_at}: usuario ${a.usuario} not mapped`)
       continue
     }
 
     try {
       await pb.collection("asistencias_evento").create({
-        publicacion_id: String(a.publicacion_id),
-        usuario_id: newUserId,
+        publicacion: String(a.publicacion),
+        usuario: newUserId,
         confirmado: a.confirmado,
       })
       totalCreated++
@@ -403,16 +403,16 @@ async function migrateUsosBeneficio() {
   }
 
   for (const u of usos) {
-    const newUserId = userMap.get(u.usuario_id)
+    const newUserId = userMap.get(u.usuario)
     if (!newUserId) {
-      logSkip(`Skipping uso ${u.id}: usuario_id ${u.usuario_id} not mapped`)
+      logSkip(`Skipping uso ${u.id}: usuario ${u.usuario} not mapped`)
       continue
     }
 
     try {
       await pb.collection("usos_beneficio").create({
-        beneficio_id: String(u.beneficio_id),
-        usuario_id: newUserId,
+        beneficio: String(u.beneficio),
+        usuario: newUserId,
         fecha_uso: u.fecha_uso,
       })
       totalCreated++
@@ -442,9 +442,9 @@ async function migrateNotificaciones() {
   }
 
   for (const n of notificaciones) {
-    const newUserId = userMap.get(n.usuario_id)
+    const newUserId = userMap.get(n.usuario)
     if (!newUserId) {
-      logSkip(`Skipping notificacion ${n.id}: usuario_id ${n.usuario_id} not mapped`)
+      logSkip(`Skipping notificacion ${n.id}: usuario ${n.usuario} not mapped`)
       continue
     }
 
@@ -452,7 +452,7 @@ async function migrateNotificaciones() {
 
     try {
       await pb.collection("notificaciones").create({
-        usuario_id: newUserId,
+        usuario: newUserId,
         creado_por: newCreadoPor,
         tipo: n.tipo,
         titulo: n.titulo,

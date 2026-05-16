@@ -66,7 +66,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -105,7 +105,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -130,7 +130,7 @@ describe("useNotificationSystem", () => {
         action: "create",
         record: {
           id: "n2",
-          usuario_id: "user-1",
+          usuario: "user-1",
           titulo: "Nueva",
           mensaje: "Mensaje nuevo",
           estado: "no_leida",
@@ -158,7 +158,7 @@ describe("useNotificationSystem", () => {
         action: "create",
         record: {
           id: "n-other",
-          usuario_id: "other-user",
+          usuario: "other-user",
           titulo: "Not mine",
           mensaje: "Should be ignored",
           estado: "no_leida",
@@ -176,7 +176,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -207,7 +207,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -238,7 +238,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -266,7 +266,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -276,7 +276,7 @@ describe("useNotificationSystem", () => {
       },
       {
         id: "n2",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T2",
         mensaje: "M2",
         estado: "no_leida",
@@ -305,7 +305,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",
@@ -333,7 +333,7 @@ describe("useNotificationSystem", () => {
     const notifs = [
       {
         id: "n1",
-        usuario_id: "user-1",
+        usuario: "user-1",
         titulo: "T1",
         mensaje: "M1",
         estado: "no_leida",

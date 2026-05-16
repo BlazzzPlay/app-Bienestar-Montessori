@@ -91,7 +91,7 @@ describe("database", () => {
 
   describe("getUsoBeneficio", () => {
     it("returns uso row when found", async () => {
-      const uso = { id: "1", beneficio_id: "1", usuario_id: "u1", fecha_uso: "2024-01-01" }
+      const uso = { id: "1", beneficio: "1", usuario: "u1", fecha_uso: "2024-01-01" }
       mockGetFirstListItem.mockResolvedValue(uso)
 
       const { data, error } = await database.getUsoBeneficio("1", "u1")
@@ -119,8 +119,8 @@ describe("database", () => {
       expect(data).toEqual(beneficio)
       expect(error).toBeNull()
       expect(mockCreate).toHaveBeenCalledWith({
-        beneficio_id: "1",
-        usuario_id: "u1",
+        beneficio: "1",
+        usuario: "u1",
       })
       expect(mockUpdate).toHaveBeenCalledWith("1", { "contador_usos+": 1 })
     })
@@ -153,8 +153,8 @@ describe("database", () => {
       expect(data).toBe(true)
       expect(error).toBeNull()
       expect(mockCreate).toHaveBeenCalledWith({
-        publicacion_id: "1",
-        usuario_id: "u1",
+        publicacion: "1",
+        usuario: "u1",
         confirmado: true,
       })
     })
@@ -168,16 +168,16 @@ describe("database", () => {
   })
 
   describe("getComentariosBeneficio", () => {
-    it("uses expand and normalizes perfiles from expand.usuario_id", async () => {
+    it("uses expand and normalizes perfiles from expand.usuario", async () => {
       const items = [
         {
           id: "1",
           contenido: "Great!",
-          usuario_id: "u1",
+          usuario: "u1",
           estado: "aprobado",
           fecha_creacion: "2024-01-01",
           expand: {
-            usuario_id: { nombre_completo: "Juan", avatar: "avatar.jpg" },
+            usuario: { nombre_completo: "Juan", avatar: "avatar.jpg" },
           },
         },
       ]
@@ -189,8 +189,8 @@ describe("database", () => {
       expect(data![0].perfiles?.nombre_completo).toBe("Juan")
       expect(data![0].perfiles?.avatar_url).toBe("avatar.jpg")
       expect(mockGetFullList).toHaveBeenCalledWith({
-        filter: 'beneficio_id="1" && estado="aprobado"',
-        expand: "usuario_id",
+        filter: 'beneficio="1" && estado="aprobado"',
+        expand: "usuario",
         sort: "-fecha_creacion",
       })
     })
@@ -199,7 +199,7 @@ describe("database", () => {
       mockGetFullList.mockResolvedValue([])
       await database.getComentariosBeneficio("1", true)
       expect(mockGetFullList).toHaveBeenCalledWith(
-        expect.objectContaining({ filter: 'beneficio_id="1"' }),
+        expect.objectContaining({ filter: 'beneficio="1"' }),
       )
     })
   })
@@ -216,11 +216,11 @@ describe("database", () => {
   })
 
   describe("getNotificaciones", () => {
-    it("returns notifications filtered by usuario_id", async () => {
+    it("returns notifications filtered by usuario", async () => {
       const notifs = [
         {
           id: "n1",
-          usuario_id: "u1",
+          usuario: "u1",
           titulo: "T1",
           mensaje: "M1",
           estado: "no_leida",
@@ -245,7 +245,7 @@ describe("database", () => {
     it("updates estado to leida", async () => {
       const updated = {
         id: "n1",
-        usuario_id: "u1",
+        usuario: "u1",
         titulo: "T1",
         mensaje: "M1",
         estado: "leida",

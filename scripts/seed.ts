@@ -268,24 +268,24 @@ async function seed() {
     {
       contenido:
         "Excelente servicio y la comida está deliciosa. El descuento se aplica sin problemas.",
-      beneficio_id: beneficioIds[0]?.id,
-      usuario_id: mariaId,
+      beneficio: beneficioIds[0]?.id,
+      usuario: mariaId,
       estado: "aprobado",
     },
     {
       contenido:
         "Muy buena atención en la farmacia. El descuento es real y se aplica inmediatamente.",
-      beneficio_id: beneficioIds[1]?.id,
-      usuario_id: mariaId,
+      beneficio: beneficioIds[1]?.id,
+      usuario: mariaId,
       estado: "aprobado",
     },
     {
       contenido: "El gimnasio tiene muy buenas instalaciones. Recomendado.",
-      beneficio_id: beneficioIds[2]?.id,
-      usuario_id: patriciaId,
+      beneficio: beneficioIds[2]?.id,
+      usuario: patriciaId,
       estado: "aprobado",
     },
-  ].filter((c) => c.beneficio_id && c.usuario_id)
+  ].filter((c) => c.beneficio && c.usuario)
 
   for (const c of comentariosBeneficios) {
     try {
@@ -303,23 +303,23 @@ async function seed() {
   const comentariosPublicaciones = [
     {
       contenido: "¡Excelente iniciativa! Estaré presente en la celebración.",
-      publicacion_id: publicacionIds[0]?.id,
-      usuario_id: mariaId,
+      publicacion: publicacionIds[0]?.id,
+      usuario: mariaId,
       estado: "aprobado",
     },
     {
       contenido: "¿Habrá transporte disponible para el evento?",
-      publicacion_id: publicacionIds[0]?.id,
-      usuario_id: juanId,
+      publicacion: publicacionIds[0]?.id,
+      usuario: juanId,
       estado: "aprobado",
     },
     {
       contenido: "Los nuevos convenios son una gran noticia. Gracias por gestionarlos.",
-      publicacion_id: publicacionIds[1]?.id,
-      usuario_id: patriciaId,
+      publicacion: publicacionIds[1]?.id,
+      usuario: patriciaId,
       estado: "aprobado",
     },
-  ].filter((c) => c.publicacion_id && c.usuario_id)
+  ].filter((c) => c.publicacion && c.usuario)
 
   for (const c of comentariosPublicaciones) {
     try {
