@@ -353,7 +353,10 @@ function ProfileDetail({ profile }: { profile: Perfil }) {
   const roleColor = ROLE_COLORS[profile.rol] || ROLE_COLORS.Visualizador
 
   return (
-    <DialogContent className="sm:max-w-md rounded-2xl p-0 gap-0 max-h-[90vh] overflow-y-auto">
+    <DialogContent
+      className="sm:max-w-md rounded-2xl p-0 gap-0 max-h-[90vh] overflow-y-auto"
+      aria-describedby={undefined}
+    >
       <DialogClose className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground hover:text-foreground">
         <X className="h-4 w-4" />
       </DialogClose>
