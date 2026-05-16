@@ -153,8 +153,39 @@ export const database = {
       })
       return { data: true, error: null }
     } catch (_e: any) {
-      // PB has no upsert; if it's a duplicate (already confirmed), treat as success
+      // PB has no upsert; if it's a duplicate (already exists), try to update instead
+      try {
+        const existing = await pb()
+          .collection("asistencias_evento")
+          .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`)
+        await pb().collection("asistencias_evento").update(existing.id, { confirmado: true })
+        return { data: true, error: null }
+      } catch {
+        return { data: true, error: null }
+      }
+    }
+  },
+
+  async cancelarAsistenciaEvento(publicacionId: string, usuarioId: string) {
+    try {
+      // Try to find existing record
+      const existing = await pb()
+        .collection("asistencias_evento")
+        .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`)
+      await pb().collection("asistencias_evento").update(existing.id, { confirmado: false })
       return { data: true, error: null }
+    } catch {
+      // No existing record — create one with confirmado=false (user marked "no participaré")
+      try {
+        await pb().collection("asistencias_evento").create({
+          publicacion: publicacionId,
+          usuario: usuarioId,
+          confirmado: false,
+        })
+        return { data: true, error: null }
+      } catch (e: any) {
+        return { data: null, error: { message: e.message ?? e.toString() } }
+      }
     }
   },
 

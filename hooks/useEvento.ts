@@ -93,6 +93,19 @@ export function useEvento(id: string, userId?: string) {
     }
   }, [id, userId, fetch])
 
+  const cancelAttendance = useCallback(async () => {
+    if (!userId) throw new Error("Usuario no autenticado")
+    setAttendanceLoading(true)
+    try {
+      const { error } = await database.cancelarAsistenciaEvento(id, userId)
+      if (error) throw error
+      setIsAttending(false)
+      await fetch() // Refresh to get updated attendee list
+    } finally {
+      setAttendanceLoading(false)
+    }
+  }, [id, userId, fetch])
+
   return {
     event,
     comments,
@@ -104,5 +117,6 @@ export function useEvento(id: string, userId?: string) {
     isAttending,
     attendanceLoading,
     confirmAttendance,
+    cancelAttendance,
   }
 }

@@ -64,6 +64,7 @@ export default function DetalleEventoPage() {
     isAttending,
     attendanceLoading,
     confirmAttendance,
+    cancelAttendance,
   } = useEvento(id, user?.id)
   const [nuevoComentario, setNuevoComentario] = useState("")
   const [comentarioEnviado, setComentarioEnviado] = useState(false)
@@ -102,6 +103,15 @@ export default function DetalleEventoPage() {
       toast.success("Asistencia confirmada")
     } catch {
       toast.error("Error al confirmar asistencia. Inténtalo de nuevo.")
+    }
+  }
+
+  const handleCancelarAsistencia = async () => {
+    try {
+      await cancelAttendance()
+      toast.success(isAttending ? "Asistencia cancelada" : "Marcado como no participaré")
+    } catch {
+      toast.error("Error al actualizar asistencia. Inténtalo de nuevo.")
     }
   }
 
@@ -234,22 +244,42 @@ export default function DetalleEventoPage() {
           {/* ── Actions ── */}
           {event.categoria === "Evento" && (
             <div className="space-y-3">
-              <Button
-                className="w-full h-12 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold rounded-xl text-base"
-                size="lg"
-                onClick={handleConfirmarAsistencia}
-                disabled={isAttending || attendanceLoading}
-                aria-label={
-                  isAttending ? "Asistencia ya confirmada" : "Confirmar asistencia al evento"
-                }
-              >
-                {attendanceLoading ? (
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="h-5 w-5 mr-2" />
+              <div className="flex gap-2">
+                <Button
+                  className={`flex-1 h-12 font-semibold rounded-xl text-base ${
+                    isAttending
+                      ? "bg-success/10 text-success border-success/30 border hover:bg-success/20"
+                      : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                  }`}
+                  size="lg"
+                  onClick={isAttending ? handleCancelarAsistencia : handleConfirmarAsistencia}
+                  disabled={attendanceLoading}
+                  aria-label={
+                    isAttending ? "Cancelar asistencia" : "Confirmar asistencia al evento"
+                  }
+                >
+                  {attendanceLoading ? (
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  ) : isAttending ? (
+                    <XCircle className="h-5 w-5 mr-2" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                  )}
+                  {isAttending ? "Cancelar Asistencia" : "Confirmar Asistencia"}
+                </Button>
+                {!isAttending && (
+                  <Button
+                    variant="outline"
+                    className="h-12 px-3 rounded-xl border-muted-foreground/30 text-muted-foreground hover:text-foreground"
+                    size="lg"
+                    onClick={handleCancelarAsistencia}
+                    disabled={attendanceLoading}
+                    aria-label="Marcar que no participaré"
+                  >
+                    <XCircle className="h-5 w-5" />
+                  </Button>
                 )}
-                {isAttending ? "Asistencia Confirmada" : "Confirmar Asistencia"}
-              </Button>
+              </div>
               <Button
                 variant="outline"
                 className="w-full h-12 rounded-xl"
