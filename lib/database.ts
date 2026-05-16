@@ -146,32 +146,38 @@ export const database = {
 
   async confirmarAsistenciaEvento(publicacionId: string, usuarioId: string) {
     try {
-      await pb().collection("asistencias_evento").create({
-        publicacion: publicacionId,
-        usuario: usuarioId,
-        confirmado: true,
-      })
+      // Search for existing record first
+      const existing = await pb()
+        .collection("asistencias_evento")
+        .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`, {
+          sort: "-created",
+        })
+      // Found → update it
+      await pb().collection("asistencias_evento").update(existing.id, { confirmado: true })
       return { data: true, error: null }
-    } catch (_e: any) {
-      // PB has no upsert; if it's a duplicate (already exists), try to update instead
+    } catch {
+      // Not found → create new
       try {
-        const existing = await pb()
-          .collection("asistencias_evento")
-          .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`)
-        await pb().collection("asistencias_evento").update(existing.id, { confirmado: true })
+        await pb().collection("asistencias_evento").create({
+          publicacion: publicacionId,
+          usuario: usuarioId,
+          confirmado: true,
+        })
         return { data: true, error: null }
-      } catch {
-        return { data: true, error: null }
+      } catch (e: any) {
+        return { data: null, error: { message: e.message ?? e.toString() } }
       }
     }
   },
 
   async cancelarAsistenciaEvento(publicacionId: string, usuarioId: string) {
     try {
-      // Try to find existing record
+      // Try to find existing record (sort by -created for determinism if duplicates somehow exist)
       const existing = await pb()
         .collection("asistencias_evento")
-        .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`)
+        .getFirstListItem(`publicacion="${publicacionId}" && usuario="${usuarioId}"`, {
+          sort: "-created",
+        })
       await pb().collection("asistencias_evento").update(existing.id, { confirmado: false })
       return { data: true, error: null }
     } catch {

@@ -147,7 +147,8 @@ describe("database", () => {
   })
 
   describe("confirmarAsistenciaEvento", () => {
-    it("creates asistencia on success", async () => {
+    it("creates new record when user has no prior attendance", async () => {
+      mockGetFirstListItem.mockRejectedValue(new Error("not found"))
       mockCreate.mockResolvedValue({ id: "1" })
       const { data, error } = await database.confirmarAsistenciaEvento("1", "u1")
       expect(data).toBe(true)
@@ -159,11 +160,21 @@ describe("database", () => {
       })
     })
 
-    it("returns true even on duplicate (catch-and-return-true)", async () => {
-      mockCreate.mockRejectedValue(new Error("duplicate"))
+    it("updates existing record when user already has attendance", async () => {
+      mockGetFirstListItem.mockResolvedValue({ id: "existing-1" })
+      mockUpdate.mockResolvedValue({})
       const { data, error } = await database.confirmarAsistenciaEvento("1", "u1")
       expect(data).toBe(true)
       expect(error).toBeNull()
+      expect(mockUpdate).toHaveBeenCalledWith("existing-1", { confirmado: true })
+    })
+
+    it("returns error when both find and create fail", async () => {
+      mockGetFirstListItem.mockRejectedValue(new Error("not found"))
+      mockCreate.mockRejectedValue(new Error("network error"))
+      const { data, error } = await database.confirmarAsistenciaEvento("1", "u1")
+      expect(data).toBeNull()
+      expect(error?.message).toBe("network error")
     })
   })
 
