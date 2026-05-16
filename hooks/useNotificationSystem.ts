@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import { createBrowserClient } from "@/lib/pocketbase"
 import { database } from "@/lib/database"
 import { useAuth } from "./useAuth"
 import type { Notificacion } from "@/lib/pocketbase"
@@ -50,8 +49,6 @@ export function useNotificationSystem() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const realtimeConnectedRef = useRef(false)
-  const unsubscribeRef = useRef<(() => void) | null>(null)
 
   const loadNotifications = useCallback(async () => {
     if (!user?.id) {
@@ -83,55 +80,14 @@ export function useNotificationSystem() {
     }
 
     loadNotifications()
-    realtimeConnectedRef.current = false
 
-    const pb = createBrowserClient()
-
-    // Subscribe to realtime notifications via PocketBase SSE
-    pb.collection("notificaciones")
-      .subscribe("*", (e) => {
-        if (e.action === "create" && e.record?.usuario_id === user.id) {
-          const newNotif = mapToDynamic(e.record as Notificacion)
-          setNotifications((prev) => [newNotif, ...prev])
-          setUnreadCount((prev) => prev + 1)
-          toast(newNotif.title, {
-            description: newNotif.message,
-          })
-        }
-      })
-      .then((unsub) => {
-        realtimeConnectedRef.current = true
-        unsubscribeRef.current = unsub
-        // Clear polling fallback if active
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current)
-          pollingRef.current = null
-        }
-      })
-      .catch(() => {
-        realtimeConnectedRef.current = false
-        if (!pollingRef.current) {
-          pollingRef.current = setInterval(() => {
-            loadNotifications()
-          }, 30000)
-        }
-      })
-
-    // Fallback: start polling if no realtime connection after 10s
-    const fallbackTimer = setTimeout(() => {
-      if (!realtimeConnectedRef.current && !pollingRef.current) {
-        pollingRef.current = setInterval(() => {
-          loadNotifications()
-        }, 30000)
-      }
-    }, 10000)
+    // Polling-based notification refresh (realtime SSE deshabilitado temporalmente
+    // porque PocketBase v0.38 devuelve 502 en /api/realtime, lo que rompe CORS)
+    pollingRef.current = setInterval(() => {
+      loadNotifications()
+    }, 30000)
 
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-        unsubscribeRef.current = null
-      }
-      clearTimeout(fallbackTimer)
       if (pollingRef.current) {
         clearInterval(pollingRef.current)
         pollingRef.current = null
