@@ -1,0 +1,7 @@
+# PocketBase con migrations incluidas en la imagen
+# Usa la imagen oficial de PocketBase, copia las migrations al directorio esperado
+FROM adrianmusante/pocketbase:latest
+
+COPY pb_migrations /pocketbase/pb_migrations
+
+EXPOSE 8090

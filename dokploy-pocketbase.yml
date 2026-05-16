@@ -4,13 +4,14 @@
 version: "3.8"
 services:
   pocketbase:
-    image: adrianmusante/pocketbase:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
     restart: always
     expose:
       - 8090
     volumes:
       - pocketbase-data:/pocketbase
-      - ./pb_migrations:/pocketbase/pb_migrations
     environment:
       - POCKETBASE_ADMIN_EMAIL=${ADMIN_EMAIL}
       - POCKETBASE_ADMIN_PASSWORD=${ADMIN_PASSWORD}
