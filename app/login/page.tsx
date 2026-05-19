@@ -14,10 +14,22 @@ const DEV_USERS = [
     rol: "Administradora",
   },
   {
+    label: "Patricia M.",
+    email: "patricia.morales@colegiomontessori.cl",
+    password: "reset-6789",
+    rol: "Presidenta",
+  },
+  {
     label: "Pedro M.",
     email: "user@colegiomontessori.cl",
     password: "test123456",
     rol: "Beneficiario",
+  },
+  {
+    label: "Juan P.",
+    email: "juan.perez@colegiomontessori.cl",
+    password: "reset-4455",
+    rol: "Visualizador",
   },
 ]
 
@@ -199,14 +211,14 @@ function LoginForm() {
           <p className="text-xs text-center text-muted-foreground font-medium">
             ⚡ Inicio rápido (testing)
           </p>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {DEV_USERS.map((user) => (
               <button
                 key={user.email}
                 type="button"
                 disabled={loading}
                 onClick={() => quickLogin(user)}
-                className="flex-1 py-2 px-3 text-xs font-medium rounded-md border border-border bg-muted hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="py-2 px-3 text-xs font-medium rounded-md border border-border bg-muted hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {user.label}
                 <span className="block text-[10px] text-muted-foreground">{user.rol}</span>
